@@ -13,19 +13,19 @@ public typealias HashableTabNavigationItem = TabNavigationItem & Hashable
 
 public protocol TabNavigationItem: NavigationItem {
     var action: StoreAction { get }
-    var tabItemFactory: () -> AnyView { get }
+    var tabItemFactory: ViewFactory { get }
 
-    var tabViewFactory: () -> AnyView { get }
+    var tabViewFactory: ViewFactory { get }
     var viewModelFactory: ViewModelFactory? { get }
 }
 
 extension TabNavigationItem where Self: CaseIterableNavigationItem  {
-    public var action: StoreAction { NavigationActions.Show(on: self, view: tabViewFactory()) }
+    public var action: StoreAction { Show(on: self, view: tabViewFactory()) }
     public var viewModelFactory: ViewModelFactory? { nil }
     public var title: String? { nil }
     public var icon: Image? { nil }
 
-    public static var viewFactory: () -> AnyView {
+    public static var viewFactory: ViewFactory {
         { TabContainerView().any }
     }
 }

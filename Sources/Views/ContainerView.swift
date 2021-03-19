@@ -38,8 +38,7 @@ public struct ContainerView: View {
             item.view
                 .onDisappear {
                     if synchronize {
-                        let action = NavigationActions.Synchronize(viewID: id)
-                        dispatcher.dispatch(action: action)
+                        dispatcher.dispatch(action: Synchronize(viewID: id))
                     }
                 }
             linkView

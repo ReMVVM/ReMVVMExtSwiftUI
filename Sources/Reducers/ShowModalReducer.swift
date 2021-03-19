@@ -10,7 +10,7 @@ import ReMVVM
 import SwiftUI
 
 public enum ShowModalReducer: Reducer {
-    public static func reduce(state: Navigation, with action: NavigationActions.ShowModal) -> Navigation  {
+    public static func reduce(state: Navigation, with action: ShowModal) -> Navigation  {
         let modals = state.modals.append(viewFactory: action.viewFactory,
                                          factory: action.factory ?? state.viewModelFactory,
                                          navigation: action.navigation)
@@ -20,7 +20,7 @@ public enum ShowModalReducer: Reducer {
 
 extension Stack where StackItem == Modal {
 
-    func append(viewFactory: @escaping () -> AnyView, factory: ViewModelFactory, navigation: Bool) -> Self {
+    func append(viewFactory: @escaping ViewFactory, factory: ViewModelFactory, navigation: Bool) -> Self {
         let element = Element(with: id, viewFactory: viewFactory, factory: factory)
         let item: Modal
         if navigation {

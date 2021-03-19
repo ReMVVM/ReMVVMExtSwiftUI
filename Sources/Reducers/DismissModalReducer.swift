@@ -9,7 +9,7 @@
 import ReMVVM
 
 public enum DismissModalReducer: Reducer {
-    public static func reduce(state: Navigation, with action: NavigationActions.DismissModal) -> Navigation  {
+    public static func reduce(state: Navigation, with action: DismissModal) -> Navigation  {
         Navigation(root: state.root, modals: state.modals.dropLast())
     }
 }

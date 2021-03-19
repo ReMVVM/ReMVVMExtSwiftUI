@@ -9,7 +9,7 @@
 import SwiftUI
 
 public protocol NavigationItem {
-    static var viewFactory: () -> AnyView { get }
+    static var viewFactory: ViewFactory { get }
     static var allItems: [NavigationItem] { get }
 
     func isEqual(to: NavigationItem) -> Bool

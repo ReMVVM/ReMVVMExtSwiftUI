@@ -14,19 +14,19 @@ public struct Element: Identifiable {
 
     public let id: UUID
     public let viewModelFactory: ViewModelFactory
-    //public var viewFactory: () -> AnyView { container.viewFactory }
+    //public var viewFactory: ViewFactory { container.viewFactory }
     public var view: AnyView { container.view }
 
     private let container: ViewContainer
     private final class ViewContainer {
-        let viewFactory: () -> AnyView
+        let viewFactory: ViewFactory
         lazy var view: AnyView =  { viewFactory() }()
-        init(_ viewFactory: @escaping () -> AnyView) {
+        init(_ viewFactory: @escaping ViewFactory) {
             self.viewFactory = viewFactory
         }
     }
 
-    public init(with id: UUID, viewFactory: @escaping () -> AnyView, factory: ViewModelFactory) {
+    public init(with id: UUID, viewFactory: @escaping ViewFactory, factory: ViewModelFactory) {
         self.id = id
         self.viewModelFactory = factory
         self.container = ViewContainer(viewFactory)

@@ -12,7 +12,7 @@ import SwiftUI
 public struct RootNavigationItem: CaseIterableNavigationItem {
     private init() { }
     
-    public static var viewFactory: () -> AnyView {
+    public static var viewFactory: ViewFactory {
         { RootContainerView().any }
     }
 

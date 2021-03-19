@@ -9,7 +9,7 @@
 import ReMVVM
 
 public enum ShowReducer: Reducer {
-    public static func reduce(state: Navigation, with action: NavigationActions.Show) -> Navigation {
+    public static func reduce(state: Navigation, with action: Show) -> Navigation {
 
         let current = action.item
         var stacks: [(NavigationItem, Stack<Element>)]

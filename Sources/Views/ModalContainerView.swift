@@ -77,8 +77,7 @@ public struct ModalContainerView: View {
                 let view = $0.hasNavigation ? NavigationView { containerView }.any : containerView.any
                 return view
                     .onDisappear {
-                        let action = NavigationActions.Synchronize(viewID: id)
-                        dispatcher.dispatch(action: action)
+                        dispatcher.dispatch(action: Synchronize(viewID: id))
                     }
                     .any
             }

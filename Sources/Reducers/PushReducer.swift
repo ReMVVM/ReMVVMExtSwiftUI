@@ -11,14 +11,14 @@ import SwiftUI
 
 public enum PushReducer: Reducer {
 
-    public static func reduce(state: Navigation, with action: NavigationActions.Push) -> Navigation  {
+    public static func reduce(state: Navigation, with action: Push) -> Navigation  {
         state.push(viewFactory: action.viewFactory, factory: action.factory)
     }
 }
 
 extension Navigation {
 
-    func push(viewFactory: @escaping () -> AnyView, factory: ViewModelFactory?) -> Navigation {
+    func push(viewFactory: @escaping ViewFactory, factory: ViewModelFactory?) -> Navigation {
         let factory = factory ?? viewModelFactory
         if modals.hasNavigation {
             return Navigation(root: root, modals: modals.push(viewFactory: viewFactory, factory: factory))
@@ -30,7 +30,7 @@ extension Navigation {
 
 extension Stack where StackItem == Modal {
 
-    func push(viewFactory: @escaping () -> AnyView, factory: ViewModelFactory) -> Self {
+    func push(viewFactory: @escaping ViewFactory, factory: ViewModelFactory) -> Self {
         let items = self.items.reversed().drop { !$0.hasNavigation }.reversed()
         if case .navigation(let stack) = items.last {
             let newStack = stack.push(viewFactory: viewFactory, factory: factory)
@@ -45,7 +45,7 @@ extension Stack where StackItem == Modal {
 
 extension Root {
 
-    func push(viewFactory: @escaping () -> AnyView, factory: ViewModelFactory) -> Root {
+    func push(viewFactory: @escaping ViewFactory, factory: ViewModelFactory) -> Root {
         let stacks = self.stacks.enumerated().map { index, stack -> (NavigationItem, Stack<Element>) in
             guard index == current else { return stack }
             return (stack.0, stack.1.push(viewFactory: viewFactory, factory: factory))
@@ -56,7 +56,7 @@ extension Root {
 
 extension Stack where StackItem == Element {
 
-    func push(viewFactory: @escaping () -> AnyView, factory: ViewModelFactory) -> Self {
+    func push(viewFactory: @escaping ViewFactory, factory: ViewModelFactory) -> Self {
         let item = Element(with: id, viewFactory: viewFactory, factory: factory)
         return Stack(with: items + [item])
     }

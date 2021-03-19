@@ -9,7 +9,7 @@
 import ReMVVM
 
 public enum SynchronizeReducer: Reducer {
-    public static func reduce(state: Navigation, with action: NavigationActions.Synchronize) -> Navigation  {
+    public static func reduce(state: Navigation, with action: Synchronize) -> Navigation  {
 
         if let modal = state.modals.items.last, modal.id == action.viewID { //modal swiped down
             return Navigation(root: state.root, modals: state.modals.dropLast())

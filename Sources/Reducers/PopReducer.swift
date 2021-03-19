@@ -9,7 +9,7 @@
 import ReMVVM
 
 public enum PopReducer: Reducer {
-    public static func reduce(state: Navigation, with action: NavigationActions.Pop) -> Navigation  {
+    public static func reduce(state: Navigation, with action: Pop) -> Navigation  {
         state.pop()
     }
 }
