@@ -14,11 +14,11 @@ let package = Package(
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
-        .package(path: "../ReMVVM"),
-//        .package(
-//            url: "https://github.com/dgrzeszczak/ReMVVM",
-//            .branch("feature/2.1.0")
-//        ),
+//        .package(path: "../ReMVVM"),
+        .package(
+            url: "https://github.com/dgrzeszczak/ReMVVM",
+            .branch("feature/Combine")
+        ),
  //       .package(url: "https://github.com/dgrzeszczak/MVVM", from: "1.0.0"),
     ],
     targets: [
