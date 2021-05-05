@@ -12,71 +12,84 @@ import ReMVVM
 
 public struct TabContainerView: View {
 
-    @PublishedValue private var currentUUID: UUID = UUID()
 
-    private var items: [ItemContainer] = []
-    private var cancelable: Cancellable!
+    @SourcedObservedObject private var viewState = ViewState()
 
-    @StateSourced(from: .store) private var state: Navigation!
-
-    @Provided private var dispatcher: Dispatcher
-
-    public init() {
-
-        items = state.root.stacks.map { navItem, stack in
-            let uuid = stack.items.first?.id ?? stack.id
-            let tabItem = (navItem as? TabNavigationItem)?.tabItemFactory() ?? EmptyView().any
-            return ItemContainer(item: navItem, tabItem: tabItem, uuid: uuid)
-        }
-
-        currentUUID = items.element(for: state.root.currentItem)?.uuid ?? UUID()
-        
-        $state
-            .compactMap { $0.root.currentItem }
-            .compactMap { [currentUUID, items] newItem -> (ItemContainer, ItemContainer)? in
-                guard let currentContainer = items.element(for: currentUUID),
-                      let newContainer = items.element(for: newItem)
-                else { return nil }
-                return (currentContainer, newContainer)
-            }
-            .filter { $0.0.item.isEqualType(to: $0.1.item) }
-            .map { $0.1.uuid }
-            .removeDuplicates()
-            .assign(to: &$currentUUID)
-
-        cancelable = $currentUUID
-            .removeDuplicates()
-            .sink { [items, dispatcher] uuid in
-                if let tabItem = items.element(for: uuid)?.item as? TabNavigationItem { // user tapped
-                    dispatcher.dispatch(action: tabItem.action)
-                }
-            }
-    }
+    public init() { }
 
     public var body: some View {
-        TabView(selection: $currentUUID.binding) {
-            ForEach(items, id: \.uuid) { item  in
+
+        TabView(selection: $viewState.currentUUID) {
+            ForEach(viewState.items, id: \.id) { item  in
                 NavigationView {
-                    ContainerView(id: item.uuid, synchronize: false)
+                    ContainerView(id: item.id, synchronize: false)
                 }
-                .tag(item.uuid)
+                .tag(item.id)
                 .tabItem { item.tabItem }
             }
         }
     }
+
+    private class ViewState: ObservableObject {
+
+        @Published var currentUUID: UUID = UUID() {
+            didSet {
+                if uuidFromState != currentUUID, let tabItem = items.element(for: currentUUID)?.item as? TabNavigationItem { // user tapped
+                    dispatcher.dispatch(action: tabItem.action)
+                }
+            }
+        }
+        @Published var items: [ItemContainer] = []
+
+        private var uuidFromState: UUID = UUID() {
+            didSet {
+                if uuidFromState != currentUUID {
+                    currentUUID = uuidFromState
+                }
+            }
+        }
+
+        @SourcedDispatcher private var dispatcher
+        @Sourced private var state: Navigation?
+        private var cancellables = Set<AnyCancellable>()
+
+        init() {
+
+            $state
+                .combineLatest($items) { state, items in
+                    items.element(for: state.root.currentItem)?.id ?? UUID()
+                }
+                .compactMap { $0 }
+                .removeDuplicates()
+                .assignNoRetain(to: \.uuidFromState, on: self)
+                .store(in: &cancellables)
+
+            $state
+                .compactMap { state -> [ItemContainer]? in
+                    state.root.stacks.map { navItem, stack in
+                        let id = stack.items.first?.id ?? stack.id
+                        let tabItem = (navItem as? TabNavigationItem)?.tabItemFactory() ?? EmptyView().any
+                        return ItemContainer(item: navItem, tabItem: tabItem, id: id)
+                    }
+                }
+                .prefix(1) //take only first value, next value will be handled by parent view
+                .assignNoRetain(to: \.items, on: self)
+                .store(in: &cancellables)
+        }
+    }
 }
 
-private struct ItemContainer {
+private struct ItemContainer: Identifiable {
     let item: NavigationItem
     let tabItem: AnyView
-    let uuid: UUID
+    let id: UUID
 }
 
 extension Array where Element == ItemContainer {
 
-    func element(for uuid: UUID?) -> Element? {
-        guard let uuid = uuid else { return nil }
-        return first { $0.uuid == uuid }
+    func element(for id: UUID?) -> Element? {
+        guard let id = id else { return nil }
+        return first { $0.id == id }
     }
 
     func element(for item: NavigationItem) -> Element? {

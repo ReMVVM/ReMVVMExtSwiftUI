@@ -14,73 +14,92 @@ public struct ModalContainerView: View {
 
     @Binding private var isModalActive: Bool
 
-    @PublishedValue private var view: AnyView?
-    @PublishedValue private var modal: UUID?
-    @PublishedValue private var isChildModalActive: Bool = false
+    @SourcedObservedObject private var viewState: ViewState
+    @SourcedDispatcher private var dispatcher
 
-    @StateSourced(from: .store) private var state: Navigation!
-
-    @Provided private var dispatcher: Dispatcher
+    private let synchronizeId: UUID?
 
     init(id: UUID, isModalActive: Binding<Bool>) {
-        _isModalActive = isModalActive
-        modalPublisher(for: id).assign(to: &$modal)
-        viewPublisher(for: id).assign(to: &$view)
+        self.init(viewType: .id(id), isModalActive: isModalActive)
     }
 
     init<V: View>(view: V, isModalActive: Binding<Bool>) {
+        self.init(viewType: .view(view.any), isModalActive: isModalActive)
+    }
+
+    private init(viewType: ViewType, isModalActive: Binding<Bool>) {
+        viewState = ViewState(viewType: viewType)
         _isModalActive = isModalActive
-        modalPublisher().assign(to: &$modal)
-        self.view = view.any
+        if case .id(let id) = viewType {
+            synchronizeId = id
+        } else {
+            synchronizeId = nil
+        }
     }
 
     public var body: some View {
-        guard let view = view else { return Text("Empty modal").any }
 
-        return view.sheet(item: $modal.binding, content: { id in
-            ModalContainerView(id: id, isModalActive: $isChildModalActive.binding)
+        viewState.view.sheet(item: $viewState.modal, content: { id in
+            ModalContainerView(id: id, isModalActive: $viewState.isChildModalActive)
+                .source(from: _dispatcher)
                 .onAppear() {
                     self.isModalActive = true
                 }
                 .onDisappear(){
                     self.isModalActive = false
                 }
-        }).any
+        })
+        .onDisappear {
+            guard let id = synchronizeId else { return }
+            dispatcher.dispatch(action: Synchronize(viewID: id))
+        }
     }
 
-    private func modalPublisher(for id: UUID? = nil) -> AnyPublisher<UUID?, Never> {
-        $state
-            .map { state -> UUID? in
-                if let id = id {
-                    return state.modals.nextItem(for: id)?.id
-                } else {
-                    return state.modals.items.first?.id
-                }
-            }
-            .combineLatest($isChildModalActive) { ($0, $1) }
-            .filter { $0.0 != nil || $0.1 == false }
-            .map { $0.0 }
-    //                .filter { [unowned self] s in s != nil || childVisible == false }
-            .removeDuplicates()
-            .eraseToAnyPublisher()
+    private enum ViewType {
+        case view(_: AnyView)
+        case id(_: UUID)
     }
 
-    private func viewPublisher(for id: UUID) -> AnyPublisher<AnyView?, Never> {
-        $state
-            .compactMap { state -> Modal? in
-                guard let item = state.modals.item(with: id) else { return nil }
-                return item
-            }
-            .removeDuplicates { $0.id == $1.id }
-            .map {
-                let containerView = ContainerView(id: $0.id, synchronize: false)
-                let view = $0.hasNavigation ? NavigationView { containerView }.any : containerView.any
-                return view
-                    .onDisappear {
-                        dispatcher.dispatch(action: Synchronize(viewID: id))
+    private class ViewState: ObservableObject {
+        @Published var isChildModalActive: Bool = false
+        @Published var modal: UUID?
+
+        @Published private(set) var view: AnyView = Text("Empty modal").any
+
+        @Sourced private var state: Navigation?
+        private var cancellables = Set<AnyCancellable>()
+
+        init(viewType: ViewType) {
+
+            let modalPublisher: AnyPublisher<UUID?, Never>
+
+            switch viewType {
+            case .id(let id):
+                modalPublisher = $state.map { $0.modals.nextItem(for: id)?.id }.eraseToAnyPublisher()
+                $state
+                    .compactMap { $0.modals.item(with: id) }
+                    .removeDuplicates { $0.id == $1.id }
+                    .map {
+                        let containerView = ContainerView(id: $0.id, synchronize: false)
+                        let view = $0.hasNavigation ? NavigationView { containerView }.any : containerView.any
+                        return view.any
                     }
-                    .any
+                    .assignNoRetain(to: \.view, on: self)
+                    .store(in: &cancellables)
+
+            case .view(let view):
+                modalPublisher = $state.map { $0.modals.items.first?.id }.eraseToAnyPublisher()
+                self.view = view
             }
-            .eraseToAnyPublisher()
+
+            modalPublisher
+                .combineLatest($isChildModalActive) { ($0, $1) }
+                .filter { $0.0 != nil || $0.1 == false }
+                .map { $0.0 }
+        //                .filter { [unowned self] s in s != nil || childVisible == false }
+                .removeDuplicates()
+                .assignNoRetain(to: \.modal, on: self)
+                .store(in: &cancellables)
+        }
     }
 }

@@ -12,30 +12,39 @@ import ReMVVM
 
 public struct MainView: View {
 
-    @PublishedValue private var isModalActive = false
-    @PublishedValue private var view: AnyView?
+    @SourcedObservedObject private var viewState = ViewState()
 
-    @StateSourced(from: .store) private var state: Navigation!
-
-    public init() {
-        $state
-            .removeDuplicates { left, right in
-                if  left.root.currentItem.isType(of: RootNavigationItem.self) &&
-                    right.root.currentItem.isType(of: RootNavigationItem.self) {
-
-                    return left.root.currentStack.items.first?.id == right.root.currentStack.items.first?.id
-                }
-
-                return left.root.currentItem.isEqualType(to: right.root.currentItem)
-            }
-            .combineLatest($isModalActive) { ($0, $1) }
-            .filter { $0.1 == false }
-            .map { type(of: $0.0.root.currentItem).viewFactory() }
-            .assign(to:  &$view)
-
-    }
+    public init() { }
 
     public var body: some View {
-        ModalContainerView(view: view, isModalActive: $isModalActive.binding)
+        VStack {
+            ModalContainerView(view: viewState.view, isModalActive: $viewState.isModalActive)
+        }
+    }
+
+    private class ViewState: ObservableObject {
+        @Published var isModalActive = false
+        @Published var view: AnyView?
+
+        @Sourced private var state: Navigation?
+        private var cancellables = Set<AnyCancellable>()
+
+        init() {
+            $state
+                .removeDuplicates { left, right in
+                    if  left.root.currentItem.isType(of: RootNavigationItem.self) &&
+                        right.root.currentItem.isType(of: RootNavigationItem.self) {
+
+                        return left.root.currentStack.items.first?.id == right.root.currentStack.items.first?.id
+                    }
+
+                    return left.root.currentItem.isEqualType(to: right.root.currentItem)
+                }
+                .combineLatest($isModalActive) { ($0, $1) }
+                .filter { $0.1 == false }
+                .map { type(of: $0.0.root.currentItem).viewFactory() }
+                .assignNoRetain(to: \.view, on: self)
+                .store(in: &cancellables)
+        }
     }
 }

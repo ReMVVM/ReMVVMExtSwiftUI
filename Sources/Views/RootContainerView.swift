@@ -11,12 +11,11 @@ import ReMVVM
 
 public struct RootContainerView: View {
 
-    //TODO DynamicProperty? + Equatable ?
-    //TODO idea @AnyStateSource<Navigation>.Published(from: store, map:XXX) var id: UUID!
-    @StateSourced(from: .store) private var state: Navigation!
-    private var id: UUID { state.root.currentStack.items.first?.id ?? state.root.currentStack.id }
+    @Sourced private var state: Navigation?
 
-    public init() {}
+    private var id: UUID { state?.root.currentStack.items.first?.id ?? state?.root.currentStack.id ?? UUID() }
+
+    public init() { }
 
     public var body: some View {
         VStack {

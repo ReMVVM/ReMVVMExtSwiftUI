@@ -16,64 +16,85 @@ public struct ContainerView: View {
     private let synchronize: Bool
     private let linkView: LinkView
 
-    @PublishedValue private var item: Element?
-    @StateSourced(from: .store) private var state: Navigation!
-    @Provided private var dispatcher: Dispatcher
+    @SourcedObservedObject private var viewState: ViewState
+    @SourcedDispatcher private var dispatcher
 
     init(id: UUID, synchronize: Bool) {
         self.id = id
         self.synchronize = synchronize
 
         linkView = LinkView(id: id)
-
-        $state
-            .map { $0.item(with: id)}
-            .filter { $0 != nil }
-            .assign(to: &$item)
+        viewState = ViewState(id: id)
     }
 
     public var body: some View {
-        guard let item = item else { return Text("No view in container").any }
-        return VStack {
-            item.view
+        VStack {
+            viewState.view
                 .onDisappear {
                     if synchronize {
                         dispatcher.dispatch(action: Synchronize(viewID: id))
                     }
                 }
             linkView
-        }.any
+        }
+    }
+
+    private class ViewState: ObservableObject {
+        @Published private(set) var view: AnyView = Text("No view in container").any
+
+        @Sourced private var state: Navigation?
+        private var cancellables = Set<AnyCancellable>()
+        init(id: UUID) {
+            $state
+                .map {
+                    $0.item(with: id)
+                }
+                .filter { $0 != nil }
+                .compactMap { $0?.view }
+                .assignNoRetain(to: \.view, on: self)
+                .store(in: &cancellables)
+        }
     }
 
     private struct LinkView: View {
 
-        private let id: UUID
-
-        @PublishedValue private var active: UUID?
-        @PublishedValue private var view: ContainerView?
-
-        @StateSourced(from: .store) private var state: Navigation!
+        @SourcedObservedObject private var viewState: ViewState
 
         init(id: UUID) {
-            self.id = id
-
-            $state
-                .map { $0.nextItem(for: id)?.id }
-                .removeDuplicates()
-                .assign(to: &$active)
-
-            $state
-                .compactMap { $0.nextId(for: id) }
-                .removeDuplicates()
-                .map { ContainerView(id: $0, synchronize: true) }
-                .assign(to: &$view)
+            viewState = ViewState(id: id)
         }
 
         var body: some View {
-            guard let view = view else { return Text("EmptyLink").any }
-            return NavigationLink(destination: view, tag: view.id, selection: $active.binding) {
+            guard let view = viewState.view else { return EmptyView().any }
+            return NavigationLink(destination: view, tag: view.id, selection: $viewState.active) {
                 EmptyView()
             }.isDetailLink(false).any
+        }
+
+        private class ViewState: ObservableObject {
+            @Published var active: UUID?
+            @Published var view: ContainerView?
+
+            @Sourced private var state: Navigation?
+            private var cancellables = Set<AnyCancellable>()
+
+            private let id: UUID
+            init(id: UUID) {
+                self.id = id
+
+                $state
+                    .map { $0.nextItem(for: id)?.id }
+                    .removeDuplicates()
+                    .assignNoRetain(to: \.active, on: self)
+                    .store(in: &cancellables)
+
+                $state
+                    .compactMap { $0.nextId(for: id) }
+                    .removeDuplicates()
+                    .map { ContainerView(id: $0, synchronize: true) }
+                    .assignNoRetain(to: \.view, on: self)
+                    .store(in: &cancellables)
+            }
         }
     }
 }
