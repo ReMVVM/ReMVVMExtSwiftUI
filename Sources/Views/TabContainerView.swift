@@ -8,12 +8,12 @@
 
 import Combine
 import SwiftUI
-import ReMVVM
+import ReMVVMSwiftUI
 
 public struct TabContainerView: View {
 
 
-    @SourcedObservedObject private var viewState = ViewState()
+    @ReMVVM.ObservedObject private var viewState = ViewState()
 
     public init() { }
 
@@ -49,8 +49,8 @@ public struct TabContainerView: View {
             }
         }
 
-        @SourcedDispatcher private var dispatcher
-        @Sourced private var state: Navigation?
+        @ReMVVM.Dispatcher private var dispatcher
+        @ReMVVM.State private var state: Navigation?
         private var cancellables = Set<AnyCancellable>()
 
         init() {

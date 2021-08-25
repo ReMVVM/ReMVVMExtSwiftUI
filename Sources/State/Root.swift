@@ -7,7 +7,7 @@
 //
 
 import Foundation
-import ReMVVM
+import ReMVVMCore
 import SwiftUI
 
 public struct Root {

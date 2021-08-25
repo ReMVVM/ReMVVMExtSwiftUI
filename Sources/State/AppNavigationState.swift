@@ -6,7 +6,7 @@
 //  Copyright © 2021 Dariusz Grzeszczak. All rights reserved.
 //
 
-import ReMVVM
+import ReMVVMCore
 
 public struct AppNavigationState<State>: NavigationState {
 

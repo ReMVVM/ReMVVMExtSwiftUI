@@ -8,14 +8,14 @@
 
 import Combine
 import SwiftUI
-import ReMVVM
+import ReMVVMSwiftUI
 
 public struct ModalContainerView: View {
 
     @Binding private var isModalActive: Bool
 
-    @SourcedObservedObject private var viewState: ViewState
-    @SourcedDispatcher private var dispatcher
+    @ReMVVM.ObservedObject private var viewState: ViewState
+    @ReMVVM.Dispatcher private var dispatcher
 
     private let synchronizeId: UUID?
 
@@ -66,7 +66,7 @@ public struct ModalContainerView: View {
 
         @Published private(set) var view: AnyView = Text("Empty modal").any
 
-        @Sourced private var state: Navigation?
+        @ReMVVM.State private var state: Navigation?
         private var cancellables = Set<AnyCancellable>()
 
         init(viewType: ViewType) {

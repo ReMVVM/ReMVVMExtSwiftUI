@@ -7,7 +7,7 @@
 //
 
 import Foundation
-import ReMVVM
+import ReMVVMCore
 import SwiftUI
 
 extension UUID: Identifiable, Initializable {

@@ -7,11 +7,11 @@
 //
 
 import SwiftUI
-import ReMVVM
+import ReMVVMSwiftUI
 
 public struct RootContainerView: View {
 
-    @Sourced private var state: Navigation?
+    @ReMVVM.State private var state: Navigation?
 
     private var id: UUID { state?.root.currentStack.items.first?.id ?? state?.root.currentStack.id ?? UUID() }
 

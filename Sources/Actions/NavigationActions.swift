@@ -6,11 +6,10 @@
 //  Copyright © 2021 Dariusz Grzeszczak. All rights reserved.
 //
 
-import ReMVVM
+import ReMVVMCore
 import SwiftUI
 
 public typealias ViewFactory = () -> AnyView
-
 
 public struct Push: StoreAction {
     public let viewFactory: ViewFactory

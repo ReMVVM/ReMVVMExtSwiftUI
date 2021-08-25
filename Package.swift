@@ -14,11 +14,11 @@ let package = Package(
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
-//        .package(path: "../ReMVVM"),
-        .package(
-            url: "https://github.com/dgrzeszczak/ReMVVM",
-            .branch("feature/Combine")
-        ),
+        .package(path: "../ReMVVM"),
+//        .package(
+//            url: "https://github.com/dgrzeszczak/ReMVVM",
+//            .branch("feature/Combine")
+//        ),
  //       .package(url: "https://github.com/dgrzeszczak/MVVM", from: "1.0.0"),
     ],
     targets: [
@@ -26,7 +26,7 @@ let package = Package(
         // Targets can depend on other targets in this package, and on products in packages which this package depends on.
         .target(
             name: "ReMVVMExt",
-            dependencies: ["ReMVVM"],
+            dependencies: ["ReMVVMCore", "ReMVVMSwiftUI"],
             path: "Sources",
             exclude: [])
     ]

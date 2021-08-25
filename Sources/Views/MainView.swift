@@ -8,11 +8,11 @@
 
 import Combine
 import SwiftUI
-import ReMVVM
+import ReMVVMSwiftUI
 
 public struct MainView: View {
 
-    @SourcedObservedObject private var viewState = ViewState()
+    @ReMVVM.ObservedObject private var viewState = ViewState()
 
     public init() { }
 
@@ -26,7 +26,7 @@ public struct MainView: View {
         @Published var isModalActive = false
         @Published var view: AnyView?
 
-        @Sourced private var state: Navigation?
+        @ReMVVM.State private var state: Navigation?
         private var cancellables = Set<AnyCancellable>()
 
         init() {

@@ -7,7 +7,7 @@
 //
 
 import SwiftUI
-import ReMVVM
+import ReMVVMCore
 
 public typealias HashableTabNavigationItem = TabNavigationItem & Hashable
 

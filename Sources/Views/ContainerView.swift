@@ -8,7 +8,7 @@
 
 import Combine
 import SwiftUI
-import ReMVVM
+import ReMVVMSwiftUI
 
 public struct ContainerView: View {
 
@@ -16,8 +16,8 @@ public struct ContainerView: View {
     private let synchronize: Bool
     private let linkView: LinkView
 
-    @SourcedObservedObject private var viewState: ViewState
-    @SourcedDispatcher private var dispatcher
+    @ReMVVM.ObservedObject private var viewState: ViewState
+    @ReMVVM.Dispatcher private var dispatcher
 
     init(id: UUID, synchronize: Bool) {
         self.id = id
@@ -42,7 +42,7 @@ public struct ContainerView: View {
     private class ViewState: ObservableObject {
         @Published private(set) var view: AnyView = Text("No view in container").any
 
-        @Sourced private var state: Navigation?
+        @ReMVVM.State private var state: Navigation?
         private var cancellables = Set<AnyCancellable>()
         init(id: UUID) {
             $state
@@ -58,7 +58,7 @@ public struct ContainerView: View {
 
     private struct LinkView: View {
 
-        @SourcedObservedObject private var viewState: ViewState
+        @ReMVVM.ObservedObject private var viewState: ViewState
 
         init(id: UUID) {
             viewState = ViewState(id: id)
@@ -75,7 +75,7 @@ public struct ContainerView: View {
             @Published var active: UUID?
             @Published var view: ContainerView?
 
-            @Sourced private var state: Navigation?
+            @ReMVVM.State private var state: Navigation?
             private var cancellables = Set<AnyCancellable>()
 
             private let id: UUID

@@ -6,18 +6,18 @@
 //  Copyright © 2021 Dariusz Grzeszczak. All rights reserved.
 //
 
-import ReMVVM
+import ReMVVMCore
 
-public enum NavigationReducer {
+public enum NavigationReducer: Reducer {
 
-    static let reducer = AnyReducer(with: [PushReducer.any,
-                                           PopReducer.any,
-                                           ShowReducer.any,
-                                           ShowModalReducer.any,
-                                           DismissModalReducer.any,
-                                           SynchronizeReducer.any])
+    static let composed = PushReducer
+        .compose(with: PopReducer.self)
+        .compose(with: ShowReducer.self)
+        .compose(with: ShowModalReducer.self)
+        .compose(with: DismissModalReducer.self)
+        .compose(with: SynchronizeReducer.self)
 
     public static func reduce(state: Navigation, with action: StoreAction) -> Navigation {
-        return reducer.reduce(state: state, with: action)
+        return composed.reduce(state: state, with: action)
     }
 }
