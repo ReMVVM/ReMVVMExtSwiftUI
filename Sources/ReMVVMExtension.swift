@@ -18,8 +18,7 @@ private enum AppNavigationReducer<State, R>: Reducer where R: Reducer, R.State =
     }
 }
 
-//todo rename to ReMVVM 
-public enum ReMVVMExtension {
+extension ReMVVM {
 
     public static func initialize<State, R>(with state: State,
                                          stateMappers: [StateMapper<State>] = [],

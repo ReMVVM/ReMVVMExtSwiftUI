@@ -17,7 +17,7 @@ let package = Package(
 //        .package(path: "../ReMVVM"),
         .package(
             url: "https://github.com/dgrzeszczak/ReMVVM",
-            .branch("feature/Combine")
+            .upToNextMajor(from: "3.0.0")
         ),
     ],
     targets: [
