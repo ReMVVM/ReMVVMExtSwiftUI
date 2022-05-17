@@ -46,13 +46,10 @@ public struct ContainerView: View {
         private var cancellables = Set<AnyCancellable>()
         init(id: UUID) {
             $state
-                .map {
-                    $0.item(with: id)
-                }
+                .map { $0.item(with: id) }
                 .filter { $0 != nil }
                 .compactMap { $0?.view }
-                .assignNoRetain(to: \.view, on: self)
-                .store(in: &cancellables)
+                .assign(to: &$view)
         }
     }
 
@@ -76,7 +73,6 @@ public struct ContainerView: View {
             @Published var view: ContainerView?
 
             @ReMVVM.State private var state: Navigation?
-            private var cancellables = Set<AnyCancellable>()
 
             private let id: UUID
             init(id: UUID) {
@@ -85,15 +81,13 @@ public struct ContainerView: View {
                 $state
                     .map { $0.nextItem(for: id)?.id }
                     .removeDuplicates()
-                    .assignNoRetain(to: \.active, on: self)
-                    .store(in: &cancellables)
+                    .assign(to: &$active)
 
                 $state
                     .compactMap { $0.nextId(for: id) }
                     .removeDuplicates()
                     .map { ContainerView(id: $0, synchronize: true) }
-                    .assignNoRetain(to: \.view, on: self)
-                    .store(in: &cancellables)
+                    .assign(to: &$view)
             }
         }
     }

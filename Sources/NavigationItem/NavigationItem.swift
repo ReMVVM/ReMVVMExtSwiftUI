@@ -28,7 +28,7 @@ extension NavigationItem where Self: CaseIterable {
 
 extension NavigationItem where Self: Equatable {
     public func isEqual(to item: NavigationItem) -> Bool {
-        return (item as? Self) == self
+        (item as? Self) == self
     }
 }
 

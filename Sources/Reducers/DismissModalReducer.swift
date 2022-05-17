@@ -15,7 +15,6 @@ public enum DismissModalReducer: Reducer {
 }
 
 extension Stack where StackItem == Modal {
-
     func dropLast() -> Self {
         guard items.count > 0 else { return self }
         return Stack(with: items.dropLast())

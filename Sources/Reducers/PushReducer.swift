@@ -10,14 +10,12 @@ import ReMVVMCore
 import SwiftUI
 
 public enum PushReducer: Reducer {
-
     public static func reduce(state: Navigation, with action: Push) -> Navigation  {
         state.push(viewFactory: action.viewFactory, factory: action.factory)
     }
 }
 
 extension Navigation {
-
     func push(viewFactory: @escaping ViewFactory, factory: ViewModelFactory?) -> Navigation {
         let factory = factory ?? viewModelFactory
         if modals.hasNavigation {
@@ -29,7 +27,6 @@ extension Navigation {
 }
 
 extension Stack where StackItem == Modal {
-
     func push(viewFactory: @escaping ViewFactory, factory: ViewModelFactory) -> Self {
         let items = self.items.reversed().drop { !$0.hasNavigation }.reversed()
         if case .navigation(let stack) = items.last {
@@ -44,7 +41,6 @@ extension Stack where StackItem == Modal {
 }
 
 extension Root {
-
     func push(viewFactory: @escaping ViewFactory, factory: ViewModelFactory) -> Root {
         let stacks = self.stacks.enumerated().map { index, stack -> (NavigationItem, Stack<Element>) in
             guard index == current else { return stack }
@@ -55,7 +51,6 @@ extension Root {
 }
 
 extension Stack where StackItem == Element {
-
     func push(viewFactory: @escaping ViewFactory, factory: ViewModelFactory) -> Self {
         let item = Element(with: id, viewFactory: viewFactory, factory: factory)
         return Stack(with: items + [item])

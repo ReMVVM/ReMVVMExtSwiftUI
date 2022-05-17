@@ -20,7 +20,7 @@ public struct Navigation {
     }
 
     public var viewModelFactory: ViewModelFactory {
-        return modals.viewModelFactory ?? root.viewModelFactory ?? CompositeViewModelFactory()
+        modals.viewModelFactory ?? root.viewModelFactory ?? CompositeViewModelFactory()
     }
 
     public func item(with id: UUID) -> Element? {
@@ -72,12 +72,12 @@ public struct Navigation {
 
 extension Stack where StackItem == Modal {
     var viewModelFactory: ViewModelFactory? {
-        return items.last?.viewModelFactory
+        items.last?.viewModelFactory
     }
 }
 
 extension Stack where StackItem == Element {
     var viewModelFactory: ViewModelFactory? {
-        return items.last?.viewModelFactory
+        items.last?.viewModelFactory
     }
 }

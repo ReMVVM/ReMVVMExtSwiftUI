@@ -15,7 +15,6 @@ public enum PopReducer: Reducer {
 }
 
 extension Navigation {
-
     func pop() -> Navigation {
         if modals.hasNavigation {
             return Navigation(root: root, modals: modals.pop())
@@ -39,7 +38,6 @@ extension Stack where StackItem == Modal {
 }
 
 extension Root {
-
     func pop() -> Root {
         let stacks = self.stacks.enumerated().map { index, stack -> (NavigationItem, Stack<Element>) in
             guard index == current else { return stack }
@@ -50,7 +48,6 @@ extension Root {
 }
 
 extension Stack where StackItem == Element {
-
     func pop() -> Self {
         guard items.count > 1 else { return self }
         return Stack(with: items.dropLast())
