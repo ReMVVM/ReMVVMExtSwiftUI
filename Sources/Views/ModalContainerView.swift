@@ -67,7 +67,6 @@ public struct ModalContainerView: View {
         @Published private(set) var view: AnyView = Text("Empty modal").any
 
         @ReMVVM.State private var state: Navigation?
-        private var cancellables = Set<AnyCancellable>()
 
         init(viewType: ViewType) {
 
@@ -84,8 +83,7 @@ public struct ModalContainerView: View {
                         let view = $0.hasNavigation ? NavigationView { containerView }.any : containerView.any
                         return view.any
                     }
-                    .assignNoRetain(to: \.view, on: self)
-                    .store(in: &cancellables)
+                    .assign(to: &$view)
 
             case .view(let view):
                 modalPublisher = $state.map { $0.modals.items.first?.id }.eraseToAnyPublisher()
@@ -98,8 +96,7 @@ public struct ModalContainerView: View {
                 .map { $0.0 }
         //                .filter { [unowned self] s in s != nil || childVisible == false }
                 .removeDuplicates()
-                .assignNoRetain(to: \.modal, on: self)
-                .store(in: &cancellables)
+                .assign(to: &$modal)
         }
     }
 }

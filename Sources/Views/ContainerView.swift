@@ -43,7 +43,7 @@ public struct ContainerView: View {
         @Published private(set) var view: AnyView = Text("No view in container").any
 
         @ReMVVM.State private var state: Navigation?
-        private var cancellables = Set<AnyCancellable>()
+
         init(id: UUID) {
             $state
                 .map { $0.item(with: id) }

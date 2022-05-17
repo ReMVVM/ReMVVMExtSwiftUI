@@ -12,7 +12,6 @@ import ReMVVMSwiftUI
 
 public struct TabContainerView: View {
 
-
     @ReMVVM.ObservedObject private var viewState = ViewState()
 
     public init() { }
@@ -41,7 +40,7 @@ public struct TabContainerView: View {
         }
         @Published var items: [ItemContainer] = []
 
-        private var uuidFromState: UUID = UUID() {
+        @Published private var uuidFromState: UUID = UUID() {
             didSet {
                 if uuidFromState != currentUUID {
                     currentUUID = uuidFromState
@@ -51,7 +50,6 @@ public struct TabContainerView: View {
 
         @ReMVVM.Dispatcher private var dispatcher
         @ReMVVM.State private var state: Navigation?
-        private var cancellables = Set<AnyCancellable>()
 
         init() {
 
@@ -61,8 +59,7 @@ public struct TabContainerView: View {
                 }
                 .compactMap { $0 }
                 .removeDuplicates()
-                .assignNoRetain(to: \.uuidFromState, on: self)
-                .store(in: &cancellables)
+                .assign(to: &$uuidFromState)
 
             $state
                 .compactMap { state -> [ItemContainer]? in
@@ -73,8 +70,7 @@ public struct TabContainerView: View {
                     }
                 }
                 .prefix(1) //take only first value, next value will be handled by parent view
-                .assignNoRetain(to: \.items, on: self)
-                .store(in: &cancellables)
+                .assign(to: &$items)
         }
     }
 }
