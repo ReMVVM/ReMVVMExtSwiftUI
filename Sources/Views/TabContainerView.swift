@@ -17,7 +17,6 @@ public struct TabContainerView: View {
     public init() { }
 
     public var body: some View {
-
         TabView(selection: $viewState.currentUUID) {
             ForEach(viewState.items, id: \.id) { item  in
                 NavigationView {
@@ -30,34 +29,31 @@ public struct TabContainerView: View {
     }
 
     private class ViewState: ObservableObject {
+        @Published var currentUUID: UUID = UUID()
 
-        @Published var currentUUID: UUID = UUID() {
-            didSet {
-                if uuidFromState != currentUUID, let tabItem = items.element(for: currentUUID)?.item as? TabNavigationItem { // user tapped
-                    dispatcher.dispatch(action: tabItem.action)
-                }
-            }
-        }
         @Published var items: [ItemContainer] = []
 
-        @Published private var uuidFromState: UUID = UUID() {
-            didSet {
-                if uuidFromState != currentUUID {
-                    currentUUID = uuidFromState
-                }
-            }
-        }
+        @Published private var uuidFromState: UUID = UUID()
 
         @ReMVVM.Dispatcher private var dispatcher
         @ReMVVM.State private var state: Navigation?
 
+        private var cancellables = Set<AnyCancellable>()
+
         init() {
+            $uuidFromState
+                .filter { [weak self] in $0 != self?.currentUUID }
+                .assign(to: &$currentUUID)
+
+            $currentUUID
+                .filter { [weak self] in self?.uuidFromState != $0 }
+                .compactMap { [weak self] in self?.items.element(for: $0)?.item as? TabNavigationItem }
+                .map { $0.action }
+                .sink { [weak self] action in self?.dispatcher.dispatch(action: action) }
+                .store(in: &cancellables)
 
             $state
-                .combineLatest($items) { state, items in
-                    items.element(for: state.root.currentItem)?.id ?? UUID()
-                }
-                .compactMap { $0 }
+                .map { [weak self] state in self?.items.element(for: state.root.currentItem)?.id ?? UUID() }
                 .removeDuplicates()
                 .assign(to: &$uuidFromState)
 
@@ -82,10 +78,8 @@ private struct ItemContainer: Identifiable {
 }
 
 extension Array where Element == ItemContainer {
-
     func element(for id: UUID?) -> Element? {
-        guard let id = id else { return nil }
-        return first { $0.id == id }
+        first { $0.id == id }
     }
 
     func element(for item: NavigationItem) -> Element? {
