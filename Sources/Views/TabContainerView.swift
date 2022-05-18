@@ -11,7 +11,6 @@ import SwiftUI
 import ReMVVMSwiftUI
 
 public struct TabContainerView: View {
-
     @ReMVVM.ObservedObject private var viewState = ViewState()
 
     public init() { }
@@ -29,33 +28,38 @@ public struct TabContainerView: View {
     }
 
     private class ViewState: ObservableObject {
-        @Published var currentUUID: UUID = UUID()
+
+        @Published var currentUUID: UUID = UUID() {
+            didSet {
+                if uuidFromState != currentUUID, let tabItem = items.element(for: currentUUID)?.item as? TabNavigationItem { // user tapped
+                    dispatcher.dispatch(action: tabItem.action)
+                }
+            }
+        }
 
         @Published var items: [ItemContainer] = []
 
-        @Published private var uuidFromState: UUID = UUID()
+        private var uuidFromState: UUID = UUID() {
+            didSet {
+                if uuidFromState != currentUUID {
+                    currentUUID = uuidFromState
+                }
+            }
+        }
 
         @ReMVVM.Dispatcher private var dispatcher
         @ReMVVM.State private var state: Navigation?
-
         private var cancellables = Set<AnyCancellable>()
 
         init() {
-            $uuidFromState
-                .filter { [weak self] in $0 != self?.currentUUID }
-                .assign(to: &$currentUUID)
-
-            $currentUUID
-                .filter { [weak self] in self?.uuidFromState != $0 }
-                .compactMap { [weak self] in self?.items.element(for: $0)?.item as? TabNavigationItem }
-                .map { $0.action }
-                .sink { [weak self] action in self?.dispatcher.dispatch(action: action) }
-                .store(in: &cancellables)
-
             $state
-                .map { [weak self] state in self?.items.element(for: state.root.currentItem)?.id ?? UUID() }
+                .combineLatest($items) { state, items in
+                    items.element(for: state.root.currentItem)?.id ?? UUID()
+                }
+                .compactMap { $0 }
                 .removeDuplicates()
-                .assign(to: &$uuidFromState)
+                .assignNoRetain(to: \.uuidFromState, on: self)
+                .store(in: &cancellables)
 
             $state
                 .compactMap { state -> [ItemContainer]? in
