@@ -23,7 +23,7 @@ public enum SynchronizeReducer: Reducer {
         }
 
         if let index = stack.items.lastIndex(where: { $0.id == action.viewID }), index == stack.items.count - 1 {
-            return state.pop()
+            return state.pop(1) // TODO: What is going on here??
         }
 
         return state

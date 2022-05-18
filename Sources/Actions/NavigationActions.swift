@@ -22,8 +22,17 @@ public struct Push: StoreAction {
 }
 
 public struct Pop: StoreAction {
-    public init() { }
-} //TODO: POP Type - to root, number of pop items
+    public let animated: Bool
+    public let mode: PopMode
+    public init(mode: PopMode = .pop(1), animated: Bool = true) {
+        self.mode = mode
+        self.animated = animated
+    }
+}
+
+public enum PopMode {
+    case popToRoot, pop(Int)
+}
 
 public struct Show: StoreAction {
     public let viewFactory: ViewFactory
