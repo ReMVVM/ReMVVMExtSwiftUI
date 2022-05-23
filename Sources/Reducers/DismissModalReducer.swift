@@ -10,7 +10,11 @@ import ReMVVMCore
 
 public enum DismissModalReducer: Reducer {
     public static func reduce(state: Navigation, with action: DismissModal) -> Navigation  {
-        Navigation(root: state.root, modals: state.modals.dropLast())
+        if action.dismissAllViews {
+            return Navigation(root: state.root, modals: state.modals.dropAll())
+        } else {
+            return Navigation(root: state.root, modals: state.modals.dropLast())
+        }
     }
 }
 
@@ -18,5 +22,9 @@ extension Stack where StackItem == Modal {
     func dropLast() -> Self {
         guard items.count > 0 else { return self }
         return Stack(with: items.dropLast())
+    }
+
+    func dropAll() -> Self {
+        Stack(with: [])
     }
 }

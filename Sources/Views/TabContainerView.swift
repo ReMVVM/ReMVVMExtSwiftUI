@@ -18,11 +18,9 @@ public struct TabContainerView: View {
     public var body: some View {
         TabView(selection: $viewState.currentUUID) {
             ForEach(viewState.items, id: \.id) { item  in
-                NavigationView {
-                    ContainerView(id: item.id, synchronize: false)
-                }
-                .tag(item.id)
-                .tabItem { item.tabItem }
+                NavigationView { ContainerView(id: item.id, synchronize: false) }
+                    .tag(item.id)
+                    .tabItem { item.tabItem }
             }
         }
     }

@@ -22,16 +22,16 @@ public struct Push: StoreAction {
 }
 
 public struct Pop: StoreAction {
+    public enum PopMode {
+        case popToRoot, pop(Int)
+    }
+
     public let animated: Bool
     public let mode: PopMode
     public init(mode: PopMode = .pop(1), animated: Bool = true) {
         self.mode = mode
         self.animated = animated
     }
-}
-
-public enum PopMode {
-    case popToRoot, pop(Int)
 }
 
 public struct Show: StoreAction {
@@ -74,7 +74,10 @@ public struct ShowModal: StoreAction {
 }
 
 public struct DismissModal: StoreAction {
-    public init() { }
+    public let dismissAllViews: Bool
+    public init(dismissAllViews: Bool = false) {
+        self.dismissAllViews = dismissAllViews
+    }
 }
 
 public struct Synchronize: StoreAction {
