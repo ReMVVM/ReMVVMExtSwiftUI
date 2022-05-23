@@ -39,7 +39,7 @@ public struct ModalContainerView: View {
 
     public var body: some View {
         viewState.view
-            .sheet(item: $viewState.modal) { id in
+            .sheet(item: $viewState.sheet) { id in
                 ModalContainerView(id: id, isModalActive: $viewState.isChildModalActive)
                     .source(from: _dispatcher)
                     .onAppear() { self.isModalActive = true }
@@ -64,7 +64,8 @@ public struct ModalContainerView: View {
 
     private class ViewState: ObservableObject {
         @Published var isChildModalActive: Bool = false
-        @Published var modal: UUID?
+
+        @Published var sheet: UUID?
         @Published var fullScreenCover: UUID?
 
         @Published private(set) var view: AnyView = Text("Empty modal").any
@@ -72,22 +73,19 @@ public struct ModalContainerView: View {
         @ReMVVM.State private var state: Navigation?
 
         init(viewType: ViewType) {
-            let modalPublisher: AnyPublisher<UUID?, Never>
-            let fullScreenPublisher: AnyPublisher<UUID?, Never>
-
             switch viewType {
             case .id(let id):
-                modalPublisher = $state
+                $state
                     .map { $0.modals.nextItem(for: id) }
-                    .filter { $0?.presentationStyle == .sheet || $0 == nil }
+                    .filter { $0?.presentationStyle != .fullScreenCover }
                     .map { $0?.id }
-                    .eraseToAnyPublisher()
+                    .assign(to: &$sheet)
 
-                fullScreenPublisher = $state
+                $state
                     .map { $0.modals.nextItem(for: id) }
-                    .filter { $0?.presentationStyle == .fullScreenCover || $0 == nil }
+                    .filter { $0?.presentationStyle != .sheet }
                     .map { $0?.id }
-                    .eraseToAnyPublisher()
+                    .assign(to: &$fullScreenCover)
 
                 $state
                     .compactMap { $0.modals.item(with: id) }
@@ -98,38 +96,36 @@ public struct ModalContainerView: View {
                         return view.any
                     }
                     .assign(to: &$view)
-
             case .view(let view):
-                modalPublisher = $state
+                $state
                     .map { $0.modals.items.first }
-                    .filter { $0?.presentationStyle == .sheet || $0 == nil }
+                    .filter { $0?.presentationStyle != .fullScreenCover }
                     .map { $0?.id }
-                    .eraseToAnyPublisher()
+                    .assign(to: &$sheet)
 
-                fullScreenPublisher = $state
+                $state
                     .map { $0.modals.items.first }
-                    .filter { $0?.presentationStyle == .fullScreenCover || $0 == nil }
+                    .filter { $0?.presentationStyle != .sheet }
                     .map { $0?.id }
-                    .eraseToAnyPublisher()
+                    .assign(to: &$fullScreenCover)
 
                 self.view = view
             }
-
-            modalPublisher
-                .combineLatest($isChildModalActive) { ($0, $1) }
-                .filter { $0.0 != nil || $0.1 == false }
-                .map { $0.0 }
-            //                .filter { [unowned self] s in s != nil || childVisible == false }
-                .removeDuplicates()
-                .assign(to: &$modal)
-
-            fullScreenPublisher
-                .combineLatest($isChildModalActive) { ($0, $1) }
-                .filter { $0.0 != nil || $0.1 == false }
-                .map { $0.0 }
-            //                .filter { [unowned self] s in s != nil || childVisible == false }
-                .removeDuplicates()
-                .assign(to: &$fullScreenCover)
+//            sheetPublisher
+//                .combineLatest($isChildModalActive) { ($0, $1) }
+//                .filter { $0.0 != nil || $0.1 == false }
+//                .map { $0.0 }
+//            //                .filter { [unowned self] s in s != nil || childVisible == false }
+//                .removeDuplicates()
+//                .assign(to: &$sheet)
+//
+//            fullScreenPublisher
+//                .combineLatest($isChildModalActive) { ($0, $1) }
+//                .filter { $0.0 != nil || $0.1 == false }
+//                .map { $0.0 }
+//            //                .filter { [unowned self] s in s != nil || childVisible == false }
+//                .removeDuplicates()
+//                .assign(to: &$fullScreenCover)
         }
     }
 }
