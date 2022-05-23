@@ -53,30 +53,39 @@ public struct Show: StoreAction {
 }
 
 public struct ShowModal: StoreAction {
+    public enum PresentationStyle {
+        case sheet
+        case fullScreenCover
+    }
+
     public let viewFactory: ViewFactory
     public let factory: ViewModelFactory?
     public let navigation: Bool
-
+    public let presentationStyle: PresentationStyle
 
     public init<V>(view: @autoclosure @escaping () -> V,
                    factory: ViewModelFactory? = nil,
-                   navigation: Bool = false)
+                   navigation: Bool = false,
+                   presentationStyle: PresentationStyle = .fullScreenCover)
                     //TODO: animated ?
-                    //TODO: modal type (fullscreen)
                     //TODO: navigation included?
-
         where V: View {
-
             self.viewFactory = { AnyView(view()) }
             self.factory = factory
             self.navigation = navigation
+            self.presentationStyle = presentationStyle
     }
 }
 
 public struct DismissModal: StoreAction {
-    public let dismissAllViews: Bool
-    public init(dismissAllViews: Bool = false) {
-        self.dismissAllViews = dismissAllViews
+    public enum DismissMode {
+        case dismiss(Int)
+        case all
+    }
+
+    public let mode: DismissMode
+    public init(mode: DismissMode = .dismiss(1)) {
+        self.mode = mode
     }
 }
 

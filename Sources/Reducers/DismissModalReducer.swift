@@ -10,18 +10,20 @@ import ReMVVMCore
 
 public enum DismissModalReducer: Reducer {
     public static func reduce(state: Navigation, with action: DismissModal) -> Navigation  {
-        if action.dismissAllViews {
+        switch action.mode {
+        case .dismiss(let count):
+            return Navigation(root: state.root, modals: state.modals.dropLast(count))
+        case .all:
             return Navigation(root: state.root, modals: state.modals.dropAll())
-        } else {
-            return Navigation(root: state.root, modals: state.modals.dropLast())
         }
     }
 }
 
 extension Stack where StackItem == Modal {
-    func dropLast() -> Self {
+    func dropLast(_ count: Int) -> Self {
         guard items.count > 0 else { return self }
-        return Stack(with: items.dropLast())
+        guard items.count >= count else { return Stack(with: items.dropLast(items.count)) }
+        return Stack(with: items.dropLast(count))
     }
 
     func dropAll() -> Self {

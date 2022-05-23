@@ -12,7 +12,7 @@ public enum SynchronizeReducer: Reducer {
     public static func reduce(state: Navigation, with action: Synchronize) -> Navigation  {
 
         if let modal = state.modals.items.last, modal.id == action.viewID { //modal swiped down
-            return Navigation(root: state.root, modals: state.modals.dropLast())
+            return Navigation(root: state.root, modals: state.modals.dropLast(1))
         }
 
         let stack: Stack<Element>

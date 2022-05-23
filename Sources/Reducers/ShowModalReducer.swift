@@ -13,15 +13,15 @@ public enum ShowModalReducer: Reducer {
     public static func reduce(state: Navigation, with action: ShowModal) -> Navigation  {
         let modals = state.modals.append(viewFactory: action.viewFactory,
                                          factory: action.factory ?? state.viewModelFactory,
-                                         navigation: action.navigation)
+                                         navigation: action.navigation,
+                                         presentationStyle: action.presentationStyle)
         return Navigation(root: state.root, modals: modals)
     }
 }
 
 extension Stack where StackItem == Modal {
-
-    func append(viewFactory: @escaping ViewFactory, factory: ViewModelFactory, navigation: Bool) -> Self {
-        let element = Element(with: id, viewFactory: viewFactory, factory: factory)
+    func append(viewFactory: @escaping ViewFactory, factory: ViewModelFactory, navigation: Bool, presentationStyle: ShowModal.PresentationStyle) -> Self {
+        let element = Element(with: id, viewFactory: viewFactory, factory: factory, modalPresentationStyle: presentationStyle)
         let item: Modal
         if navigation {
             item = .navigation(Stack<Element>(with: [element]))

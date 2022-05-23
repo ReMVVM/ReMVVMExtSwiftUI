@@ -11,11 +11,12 @@ import ReMVVMCore
 import SwiftUI
 
 public struct Element: Identifiable {
-
     public let id: UUID
     public let viewModelFactory: ViewModelFactory
     //public var viewFactory: ViewFactory { container.viewFactory }
     public var view: AnyView { container.view }
+
+    public let modalPresentationStyle: ShowModal.PresentationStyle?
 
     private let container: ViewContainer
     private final class ViewContainer {
@@ -26,9 +27,10 @@ public struct Element: Identifiable {
         }
     }
 
-    public init(with id: UUID, viewFactory: @escaping ViewFactory, factory: ViewModelFactory) {
+    public init(with id: UUID, viewFactory: @escaping ViewFactory, factory: ViewModelFactory, modalPresentationStyle: ShowModal.PresentationStyle? = nil) {
         self.id = id
         self.viewModelFactory = factory
         self.container = ViewContainer(viewFactory)
+        self.modalPresentationStyle = modalPresentationStyle
     }
 }
