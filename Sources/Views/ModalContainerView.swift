@@ -39,7 +39,7 @@ public struct ModalContainerView: View {
 
     public var body: some View {
         viewState.view
-            .sheet(item: $viewState.modal) { id in
+            .sheet(item: $viewState.sheet) { id in
                 ModalContainerView(id: id, isModalActive: $viewState.isChildModalActive)
                     .source(from: _dispatcher)
                     .onAppear() { self.isModalActive = true }
@@ -64,7 +64,7 @@ public struct ModalContainerView: View {
 
     private class ViewState: ObservableObject {
         @Published var isChildModalActive: Bool = false
-        @Published var modal: UUID?
+        @Published var sheet: UUID?
         @Published var fullScreenCover: UUID?
 
         @Published private(set) var view: AnyView = Text("Empty modal").any
@@ -72,12 +72,12 @@ public struct ModalContainerView: View {
         @ReMVVM.State private var state: Navigation?
 
         init(viewType: ViewType) {
-            let modalPublisher: AnyPublisher<UUID?, Never>
+            let sheetPublisher: AnyPublisher<UUID?, Never>
             let fullScreenPublisher: AnyPublisher<UUID?, Never>
 
             switch viewType {
             case .id(let id):
-                modalPublisher = $state
+                sheetPublisher = $state
                     .map { $0.modals.nextItem(for: id) }
                     .filter { $0?.presentationStyle != .fullScreenCover }
                     .map { $0?.id }
@@ -100,7 +100,7 @@ public struct ModalContainerView: View {
                     .assign(to: &$view)
 
             case .view(let view):
-                modalPublisher = $state
+                sheetPublisher = $state
                     .map { $0.modals.items.first }
                     .filter { $0?.presentationStyle != .fullScreenCover }
                     .map { $0?.id }
@@ -115,12 +115,12 @@ public struct ModalContainerView: View {
                 self.view = view
             }
 
-            modalPublisher
+            sheetPublisher
                 .combineLatest($isChildModalActive) { ($0, $1) }
                 .filter { $0.0 != nil || $0.1 == false }
                 .map { $0.0 }
                 .removeDuplicates()
-                .assign(to: &$modal)
+                .assign(to: &$sheet)
 
             fullScreenPublisher
                 .combineLatest($isChildModalActive) { ($0, $1) }

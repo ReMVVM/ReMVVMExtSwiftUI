@@ -61,7 +61,9 @@ public struct ContainerView: View {
 
         var body: some View {
             if let view = viewState.view {
-                NavigationLink(destination: view, tag: view.id, selection: $viewState.active) { EmptyView() }
+                NavigationLink(destination: view,
+                               tag: view.id,
+                               selection: $viewState.active) { EmptyView() }
                     .isDetailLink(false)
             } else {
                 EmptyView()

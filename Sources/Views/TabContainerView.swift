@@ -26,11 +26,10 @@ public struct TabContainerView: View {
     }
 
     private class ViewState: ObservableObject {
-
         @Published var currentUUID: UUID = UUID() {
             didSet {
-                if uuidFromState != currentUUID, let tabItem = items.element(for: currentUUID)?.item as? TabNavigationItem { // user tapped
-                    dispatcher.dispatch(action: tabItem.action)
+                if oldValue == currentUUID {
+                    self.dispatcher.dispatch(action: Pop(mode: .popToRoot))
                 }
             }
         }
@@ -50,11 +49,20 @@ public struct TabContainerView: View {
         private var cancellables = Set<AnyCancellable>()
 
         init() {
+            $currentUUID
+                .removeDuplicates()
+                .filter { self.uuidFromState != $0 }
+                .compactMap { self.items.element(for: $0)?.item as? TabNavigationItem }
+                .map { $0.action }
+                .sink { action in self.dispatcher.dispatch(action: action) }
+                .store(in: &cancellables)
+
             $state
                 .combineLatest($items) { state, items in
-                    items.element(for: state.root.currentItem)?.id ?? UUID()
+                    items.element(for: state.root.currentItem)
                 }
-                .compactMap { $0 }
+                .filter { ($0?.item as? TabNavigationItem) != nil }
+                .compactMap { $0?.id }
                 .removeDuplicates()
                 .assignNoRetain(to: \.uuidFromState, on: self)
                 .store(in: &cancellables)
