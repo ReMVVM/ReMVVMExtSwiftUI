@@ -28,11 +28,8 @@ public struct Navigation {
             return element
         }
 
-        //TODO move to stack extension where Modal ?
-        for modal in modals.items {
-            if let element = modal.item(with: id) {
-                return element
-            }
+        if let element = modals.element(with: id) {
+            return element
         }
 
         return nil
@@ -43,12 +40,10 @@ public struct Navigation {
             return nextId
         }
 
-        //TODO move to stack extension where Modal ?
-        for modal in modals.items {
-            if let nextId = modal.nextId(for: id) {
-                return nextId
-            }
+        if let nextId = modals.nextId(for: id) {
+            return nextId
         }
+
         return nil
     }
 
@@ -57,11 +52,8 @@ public struct Navigation {
             return item
         }
 
-        //TODO move to stack extension where Modal ?
-        for modal in modals.items {
-            if let item = modal.nextItem(for: id) {
-                return item
-            }
+        if let item = modals.nextElement(with: id) {
+            return item
         }
 
         return nil
@@ -73,6 +65,35 @@ public struct Navigation {
 extension Stack where StackItem == Modal {
     var viewModelFactory: ViewModelFactory? {
         items.last?.viewModelFactory
+    }
+
+    func element(with id: UUID) -> Element? {
+        for modal in items {
+            if let element = modal.item(with: id) {
+                return element
+            }
+        }
+        return nil
+    }
+
+    func nextElement(with id: UUID) -> Element? {
+        for modal in items {
+            if let item = modal.nextItem(for: id) {
+                return item
+            }
+        }
+
+        return nil
+    }
+
+    func nextId(for id: UUID) -> UUID? {
+        for modal in items {
+            if let nextId = modal.nextId(for: id) {
+                return nextId
+            }
+        }
+
+        return nil
     }
 }
 

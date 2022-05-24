@@ -43,10 +43,9 @@ public struct Show: StoreAction {
                      view: @autoclosure @escaping () -> V,
                      factory: ViewModelFactory? = nil,
                      animated: Bool = true, // TODO
-                     navigationBarHidden: Bool = true) // TODO
+                     navigationBarHidden: Bool = true)
         where N: CaseIterableNavigationItem, V: View {
-
-            self.viewFactory = { AnyView(view()) }
+            self.viewFactory = { AnyView(view().navigationBarHidden(navigationBarHidden)) }
             self.factory = factory
             self.item = navigationItem
     }
@@ -68,7 +67,6 @@ public struct ShowModal: StoreAction {
                    navigation: Bool = false,
                    presentationStyle: PresentationStyle = .fullScreenCover)
                     //TODO: animated ?
-                    //TODO: navigation included?
         where V: View {
             self.viewFactory = { AnyView(view()) }
             self.factory = factory
@@ -78,13 +76,13 @@ public struct ShowModal: StoreAction {
 }
 
 public struct DismissModal: StoreAction {
-    public enum DismissMode {
+    public enum Mode {
         case dismiss(Int)
         case all
     }
 
-    public let mode: DismissMode
-    public init(mode: DismissMode = .dismiss(1)) {
+    public let mode: Mode
+    public init(mode: Mode = .dismiss(1)) {
         self.mode = mode
     }
 }

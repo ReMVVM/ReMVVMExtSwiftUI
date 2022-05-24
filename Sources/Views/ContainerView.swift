@@ -28,15 +28,13 @@ public struct ContainerView: View {
     }
 
     public var body: some View {
-        VStack {
-            viewState.view
-                .onDisappear {
-                    if synchronize {
-                        dispatcher.dispatch(action: Synchronize(viewID: id))
-                    }
+        viewState.view
+            .background(linkView)
+            .onDisappear {
+                if synchronize {
+                    dispatcher.dispatch(action: Synchronize(viewID: id))
                 }
-            linkView
-        }
+            }
     }
 
     private class ViewState: ObservableObject {
@@ -62,12 +60,14 @@ public struct ContainerView: View {
         }
 
         var body: some View {
-            guard let view = viewState.view else { return EmptyView().any }
-            return NavigationLink(destination: view, tag: view.id, selection: $viewState.active) {
+            if let view = viewState.view {
+                NavigationLink(destination: view, tag: view.id, selection: $viewState.active) { EmptyView() }
+                    .isDetailLink(false)
+            } else {
                 EmptyView()
-            }.isDetailLink(false).any
+            }
         }
-
+        
         private class ViewState: ObservableObject {
             @Published var active: UUID?
             @Published var view: ContainerView?
