@@ -17,7 +17,7 @@ public struct TabContainerView: View {
 
     public var body: some View {
         TabView(selection: $viewState.currentUUID) {
-            ForEach(viewState.items, id: \.id) { item  in
+            ForEach(viewState.items) { item  in
                 NavigationView { ContainerView(id: item.id, synchronize: false) }
                     .tag(item.id)
                     .tabItem { item.tabItem }
@@ -26,6 +26,8 @@ public struct TabContainerView: View {
     }
 
     private class ViewState: ObservableObject {
+
+        @Published var items: [ItemContainer] = []
         @Published var currentUUID: UUID = UUID() {
             didSet {
                 if oldValue == currentUUID {
@@ -33,8 +35,6 @@ public struct TabContainerView: View {
                 }
             }
         }
-
-        @Published var items: [ItemContainer] = []
 
         private var uuidFromState: UUID = UUID() {
             didSet {
@@ -71,7 +71,7 @@ public struct TabContainerView: View {
                 .compactMap { state -> [ItemContainer]? in
                     state.root.stacks.map { navItem, stack in
                         let id = stack.items.first?.id ?? stack.id
-                        let tabItem = (navItem as? TabNavigationItem)?.tabItemFactory() ?? EmptyView().any
+                        let tabItem = (navItem as? TabNavigationItem)?.tabItemFactory ?? EmptyView().any
                         return ItemContainer(item: navItem, tabItem: tabItem, id: id)
                     }
                 }
