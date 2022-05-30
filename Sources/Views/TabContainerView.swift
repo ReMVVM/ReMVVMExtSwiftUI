@@ -71,7 +71,7 @@ public struct TabContainerView: View {
                 .compactMap { state -> [ItemContainer]? in
                     state.root.stacks.map { navItem, stack in
                         let id = stack.items.first?.id ?? stack.id
-                        let tabItem = (navItem as? TabNavigationItem)?.tabItemFactory ?? EmptyView().any
+                        let tabItem = (navItem as? TabNavigationItem)?.tabItemFactory() ?? EmptyView().any
                         return ItemContainer(item: navItem, tabItem: tabItem, id: id)
                     }
                 }
