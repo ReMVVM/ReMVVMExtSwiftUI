@@ -13,6 +13,8 @@ import ReMVVMSwiftUI
 public struct TabContainerView: View {
     @ReMVVM.ObservedObject private var viewState = ViewState()
 
+    @Namespace private var tabBarNamespace
+
     public init() { }
 
     public var body: some View {
@@ -20,9 +22,13 @@ public struct TabContainerView: View {
             ForEach(viewState.items) { item  in
                 NavigationView { ContainerView(id: item.id, synchronize: false) }
                     .tag(item.id)
-                    .tabItem { item.tabItem }
+                    .navigationViewStyle(.stack)
             }
         }
+        .overlay(viewState.tabBarFactory?(viewState.items.map { $0.tabItem },
+                                          $viewState.currentIndex),
+                 alignment: .bottom)
+        .ignoresSafeArea()
     }
 
     private class ViewState: ObservableObject {
@@ -35,6 +41,9 @@ public struct TabContainerView: View {
                 }
             }
         }
+        @Published var currentIndex: Int = 0
+
+        @Published var tabBarFactory: NavigationConfig.TabBarFactory? = nil
 
         private var uuidFromState: UUID = UUID() {
             didSet {
@@ -46,9 +55,28 @@ public struct TabContainerView: View {
 
         @ReMVVM.Dispatcher private var dispatcher
         @ReMVVM.State private var state: Navigation?
+        @ReMVVM.State private var uiStateConfig: UIStateConfig?
+
         private var cancellables = Set<AnyCancellable>()
 
         init() {
+            $currentUUID
+                .removeDuplicates()
+                .combineLatest($items) { id, items in
+                    items.firstIndex { $0.id == id }
+                }
+                .compactMap { $0 }
+                .assign(to: &$currentIndex)
+
+            $currentIndex
+                .removeDuplicates()
+                .combineLatest($items) { index, items -> UUID? in
+                    guard items.indices.contains(index) else { return nil }
+                    return items[index].id
+                }
+                .compactMap { $0 }
+                .assign(to: &$currentUUID)
+
             $currentUUID
                 .removeDuplicates()
                 .filter { self.uuidFromState != $0 }
@@ -77,6 +105,10 @@ public struct TabContainerView: View {
                 }
                 .prefix(1) //take only first value, next value will be handled by parent view
                 .assign(to: &$items)
+
+            $uiStateConfig
+                .compactMap { $0.navigationConfigs.tabBarFactory }
+                .assign(to: &$tabBarFactory)
         }
     }
 }
@@ -85,6 +117,10 @@ private struct ItemContainer: Identifiable {
     let item: NavigationItem
     let tabItem: AnyView
     let id: UUID
+
+//    static var preview: ItemContainer {
+//        .init(item: PreviewNavigationTab.home, tabItem: PreviewNavigationTab.home.tabItemFactory(), id: UUID())
+//    }
 }
 
 extension Array where Element == ItemContainer {
@@ -94,5 +130,26 @@ extension Array where Element == ItemContainer {
 
     func element(for item: NavigationItem) -> Element? {
         first { $0.item.isEqual(to: item) }
+    }
+}
+
+enum PreviewNavigationTab: String, TabNavigationItem, CaseIterableNavigationItem {
+    case home = "Home"
+    case tests = "Tests"
+    case profile = "Profile"
+
+
+    public var tabViewFactory: () -> AnyView {
+        switch self {
+        case .home: return { Text("HOME").any }
+        case .tests: return { Text("TESTS").any }
+        case .profile: return { Text("PROFILE").any }
+        }
+    }
+
+    public var tabItemFactory: () -> AnyView {
+        switch self {
+        default: return { Image(uiImage: .add).any }
+        }
     }
 }

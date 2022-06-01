@@ -7,6 +7,7 @@
 //
 
 import ReMVVMCore
+import UIKit
 
 public enum DismissModalReducer: Reducer {
     public static func reduce(state: Navigation, with action: DismissModal) -> Navigation  {

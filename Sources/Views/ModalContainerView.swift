@@ -39,18 +39,20 @@ public struct ModalContainerView: View {
 
     public var body: some View {
         viewState.view
-            .sheet(item: $viewState.sheet) { id in
-                ModalContainerView(id: id, isModalActive: $viewState.isChildModalActive)
-                    .source(from: _dispatcher)
-                    .onAppear() { self.isModalActive = true }
-                    .onDisappear() { self.isModalActive = false }
-            }
-            .fullScreenCover(item: $viewState.fullScreenCover) { id in
-                ModalContainerView(id: id, isModalActive: $viewState.isChildModalActive)
-                    .source(from: _dispatcher)
-                    .onAppear() { self.isModalActive = true }
-                    .onDisappear() { self.isModalActive = false }
-            }
+            .background(EmptyView()
+                .sheet(item: $viewState.sheet) { id in
+                    ModalContainerView(id: id, isModalActive: $viewState.isChildModalActive)
+                        .source(from: _dispatcher)
+                        .onAppear() { self.isModalActive = true }
+                        .onDisappear() { self.isModalActive = false }
+                })
+            .background(EmptyView()
+                .fullScreenCover(item: $viewState.fullScreenCover) { id in
+                    ModalContainerView(id: id, isModalActive: $viewState.isChildModalActive)
+                        .source(from: _dispatcher)
+                        .onAppear() { self.isModalActive = true }
+                        .onDisappear() { self.isModalActive = false }
+                })
             .onDisappear {
                 guard let id = synchronizeId else { return }
                 dispatcher.dispatch(action: Synchronize(viewID: id))

@@ -9,8 +9,8 @@
 import ReMVVMCore
 
 public struct AppNavigationState<State>: NavigationState {
-
     public let navigation: Navigation
+    public let uiConfig: UIStateConfig
 
     public let appState: State
 
@@ -26,8 +26,10 @@ public struct AppNavigationState<State>: NavigationState {
     }
 
     public init(appState: State,
-                navigation: Navigation = Navigation(root: Root(stack: Stack()))) {
+                navigation: Navigation = Navigation(root: Root(stack: Stack())),
+                uiConfig: UIStateConfig) {
         self.appState = appState
         self.navigation = navigation
+        self.uiConfig = uiConfig
     }
 }
