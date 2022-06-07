@@ -15,24 +15,30 @@ public struct TabContainerView: View {
 
     @Namespace private var tabBarNamespace
 
+    private var currentIndex: Binding<Int?> {
+        $viewState.currentUUID
+            .map(get: { id in viewState.items.firstIndex { $0.id == id } },
+                 set: { viewState.items.with($0)?.id })
+    }
+
     public init() { }
 
     public var body: some View {
         TabView(selection: $viewState.currentUUID) {
-            ForEach(viewState.items) { item  in
+            ForEach(viewState.items) { item in
                 NavigationView { ContainerView(id: item.id, synchronize: false) }
                     .tag(item.id)
+                    .tabItem { viewState.tabBarFactory == nil ? item.tabItem : nil }
                     .navigationViewStyle(.stack)
             }
         }
-        .overlay(viewState.tabBarFactory?(viewState.items.map { $0.tabItem },
-                                          $viewState.currentIndex),
+        .overlay(viewState.tabBarFactory?(viewState.items.compactMap { $0.item as? TabNavigationItem },
+                                          currentIndex),
                  alignment: .bottom)
         .ignoresSafeArea()
     }
 
     private class ViewState: ObservableObject {
-
         @Published var items: [ItemContainer] = []
         @Published var currentUUID: UUID = UUID() {
             didSet {
@@ -41,7 +47,6 @@ public struct TabContainerView: View {
                 }
             }
         }
-        @Published var currentIndex: Int = 0
 
         @Published var tabBarFactory: NavigationConfig.TabBarFactory? = nil
 
@@ -60,23 +65,6 @@ public struct TabContainerView: View {
         private var cancellables = Set<AnyCancellable>()
 
         init() {
-            $currentUUID
-                .removeDuplicates()
-                .combineLatest($items) { id, items in
-                    items.firstIndex { $0.id == id }
-                }
-                .compactMap { $0 }
-                .assign(to: &$currentIndex)
-
-            $currentIndex
-                .removeDuplicates()
-                .combineLatest($items) { index, items -> UUID? in
-                    guard items.indices.contains(index) else { return nil }
-                    return items[index].id
-                }
-                .compactMap { $0 }
-                .assign(to: &$currentUUID)
-
             $currentUUID
                 .removeDuplicates()
                 .filter { self.uuidFromState != $0 }
@@ -99,7 +87,7 @@ public struct TabContainerView: View {
                 .compactMap { state -> [ItemContainer]? in
                     state.root.stacks.map { navItem, stack in
                         let id = stack.items.first?.id ?? stack.id
-                        let tabItem = (navItem as? TabNavigationItem)?.tabItemFactory() ?? EmptyView().any
+                        let tabItem = (navItem as? TabNavigationItem)?.tabItemFactory()
                         return ItemContainer(item: navItem, tabItem: tabItem, id: id)
                     }
                 }
@@ -107,7 +95,7 @@ public struct TabContainerView: View {
                 .assign(to: &$items)
 
             $uiStateConfig
-                .compactMap { $0.navigationConfigs.tabBarFactory }
+                .compactMap { $0.navigationConfig.tabBarFactory }
                 .assign(to: &$tabBarFactory)
         }
     }
@@ -115,12 +103,8 @@ public struct TabContainerView: View {
 
 private struct ItemContainer: Identifiable {
     let item: NavigationItem
-    let tabItem: AnyView
+    let tabItem: AnyView?
     let id: UUID
-
-//    static var preview: ItemContainer {
-//        .init(item: PreviewNavigationTab.home, tabItem: PreviewNavigationTab.home.tabItemFactory(), id: UUID())
-//    }
 }
 
 extension Array where Element == ItemContainer {
@@ -130,26 +114,5 @@ extension Array where Element == ItemContainer {
 
     func element(for item: NavigationItem) -> Element? {
         first { $0.item.isEqual(to: item) }
-    }
-}
-
-enum PreviewNavigationTab: String, TabNavigationItem, CaseIterableNavigationItem {
-    case home = "Home"
-    case tests = "Tests"
-    case profile = "Profile"
-
-
-    public var tabViewFactory: () -> AnyView {
-        switch self {
-        case .home: return { Text("HOME").any }
-        case .tests: return { Text("TESTS").any }
-        case .profile: return { Text("PROFILE").any }
-        }
-    }
-
-    public var tabItemFactory: () -> AnyView {
-        switch self {
-        default: return { Image(uiImage: .add).any }
-        }
     }
 }

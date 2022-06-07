@@ -57,29 +57,19 @@ extension ReMVVM {
 
 
 public struct UIStateConfig {
-    //let initialController: () -> UIViewController
-    //let navigationController: () -> UINavigationController
-    let navigationConfigs: NavigationConfig
-    //let navigationBarHidden: Bool
+    let navigationConfig: NavigationConfig
 
-    public init(//initialController: @escaping @autoclosure () -> UIViewController,
-                //navigationController: (() -> UINavigationController)? = nil,
-                navigationConfigs: NavigationConfig
-                //navigationBarHidden: Bool = true
-                ) {
-        //self.initialController = initialController
-        //self.navigationController = navigationController ?? { UINavigationController() }
-        self.navigationConfigs = navigationConfigs
-        //self.navigationBarHidden = navigationBarHidden
+    public init(navigationConfig: NavigationConfig) {
+        self.navigationConfig = navigationConfig
     }
 }
 
 public struct NavigationConfig {
-    public typealias TabBarFactory = (_ items: [AnyView], _ selectedIndex: Binding<Int>) -> AnyView
+    public typealias TabBarFactory = (_ items: [TabNavigationItem], _ selectedIndex: Binding<Int?>) -> AnyView
 
     public var tabBarFactory: TabBarFactory
 
-    public init(tabBarFactory: @escaping TabBarFactory) {
-        self.tabBarFactory = tabBarFactory
+    public init<V>(tabBarFactory: @escaping (_ items: [TabNavigationItem], _ selectedIndex: Binding<Int?>) -> V) where V: View {
+        self.tabBarFactory = { tabBarFactory($0, $1).any }
     }
 }
