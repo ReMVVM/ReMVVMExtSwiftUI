@@ -95,7 +95,7 @@ public struct TabContainerView: View {
                 .assign(to: &$items)
 
             $uiStateConfig
-                .compactMap { $0.navigationConfig.tabBarFactory }
+                .compactMap { $0.navigationConfig?.tabBarFactory }
                 .assign(to: &$tabBarFactory)
         }
     }

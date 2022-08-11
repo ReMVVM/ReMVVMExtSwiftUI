@@ -57,9 +57,9 @@ extension ReMVVM {
 
 
 public struct UIStateConfig {
-    let navigationConfig: NavigationConfig
+    let navigationConfig: NavigationConfig?
 
-    public init(navigationConfig: NavigationConfig) {
+    public init(navigationConfig: NavigationConfig?) {
         self.navigationConfig = navigationConfig
     }
 }
