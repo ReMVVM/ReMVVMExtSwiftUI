@@ -9,15 +9,14 @@
 import ReMVVMCore
 
 public enum SynchronizeReducer: Reducer {
-    public static func reduce(state: Navigation, with action: Synchronize) -> Navigation  {
-
-        if let modal = state.modals.items.last, modal.id == action.viewID { //modal swiped down
+    public static func reduce(state: Navigation, with action: Synchronize) -> Navigation {
+        if let modal = state.modals.items.last, modal.id == action.viewID { // modal swiped down
             return Navigation(root: state.root, modals: state.modals.dropLast(1))
         }
 
         let stack: Stack<Element>
-        if case .navigation(let s) = state.modals.items.last {
-            stack = s
+        if case .navigation(let navigationStack) = state.modals.items.last {
+            stack = navigationStack
         } else {
             stack = state.root.currentStack
         }
@@ -29,4 +28,3 @@ public enum SynchronizeReducer: Reducer {
         return state
     }
 }
-

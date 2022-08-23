@@ -28,14 +28,15 @@ public struct TabContainerView: View {
             ForEach(viewState.items) { item in
                 NavigationView { ContainerView(id: item.id, synchronize: false) }
                     .tag(item.id)
-                    .tabItem { viewState.tabBarFactory == nil ? item.tabItem : nil }
+                    .tabItem {
+                        viewState.tabBarFactory == nil ? item.tabItem?(viewState.items.firstIndex { $0.id == item.id } == currentIndex.wrappedValue) : nil
+                    }
                     .navigationViewStyle(.stack)
             }
         }
         .overlay(viewState.tabBarFactory?(viewState.items.compactMap { $0.item as? TabNavigationItem },
                                           currentIndex),
                  alignment: .bottom)
-        .ignoresSafeArea()
     }
 
     private class ViewState: ObservableObject {
@@ -48,7 +49,7 @@ public struct TabContainerView: View {
             }
         }
 
-        @Published var tabBarFactory: NavigationConfig.TabBarFactory? = nil
+        @Published var tabBarFactory: NavigationConfig.TabBarFactory?
 
         private var uuidFromState: UUID = UUID() {
             didSet {
@@ -87,8 +88,8 @@ public struct TabContainerView: View {
                 .compactMap { state -> [ItemContainer]? in
                     state.root.stacks.map { navItem, stack in
                         let id = stack.items.first?.id ?? stack.id
-                        let tabItem = (navItem as? TabNavigationItem)?.tabItemFactory()
-                        return ItemContainer(item: navItem, tabItem: tabItem, id: id)
+                        let tabItemFactory = (navItem as? TabNavigationItem)?.tabItemFactory
+                        return ItemContainer(item: navItem, tabItem: tabItemFactory, id: id)
                     }
                 }
                 .prefix(1) //take only first value, next value will be handled by parent view
@@ -103,7 +104,7 @@ public struct TabContainerView: View {
 
 private struct ItemContainer: Identifiable {
     let item: NavigationItem
-    let tabItem: AnyView?
+    let tabItem: ((Bool) -> AnyView)?
     let id: UUID
 }
 

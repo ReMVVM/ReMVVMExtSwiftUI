@@ -26,8 +26,8 @@ public struct Root {
     }
 
     public init<T>(current: Int, stacks: [(T, Stack<Element>)]) where T: CaseIterableNavigationItem {
-        if stacks.count > 0 {
-            self.init(stack : Stack())
+        if !stacks.isEmpty {
+            self.init(stack: Stack())
         } else {
             self.init(current: current, stacks: stacks.map { ($0, $1) })
         }
