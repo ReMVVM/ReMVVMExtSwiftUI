@@ -15,6 +15,8 @@ public enum NavigationReducer: Reducer {
         .compose(with: ShowModalReducer.self)
         .compose(with: DismissModalReducer.self)
         .compose(with: SynchronizeReducer.self)
+        .compose(with: ShowPopupReducer.self)
+        .compose(with: HidePopupReducer.self)
 
     public static func reduce(state: Navigation, with action: StoreAction) -> Navigation {
         composed.reduce(state: state, with: action)

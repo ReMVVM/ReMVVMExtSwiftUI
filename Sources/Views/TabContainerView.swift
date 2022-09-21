@@ -26,7 +26,7 @@ public struct TabContainerView: View {
     public var body: some View {
         TabView(selection: $viewState.currentUUID) {
             ForEach(viewState.items) { item in
-                NavigationView { ContainerView(id: item.id, synchronize: false) }
+                NavigationView { LinkContainerView(id: item.id, synchronize: false) }
                     .tag(item.id)
                     .tabItem {
                         viewState.tabBarFactory == nil ? item.tabItem?(viewState.items.firstIndex { $0.id == item.id } == currentIndex.wrappedValue) : nil

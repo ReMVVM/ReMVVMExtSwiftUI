@@ -56,4 +56,3 @@ extension Stack where StackItem == Element {
         return Stack(with: items + [item])
     }
 }
-

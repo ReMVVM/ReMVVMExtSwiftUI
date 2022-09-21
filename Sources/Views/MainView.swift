@@ -17,9 +17,7 @@ public struct MainView: View {
     public init() { }
 
     public var body: some View {
-        VStack {
-            ModalContainerView(view: viewState.view, isModalActive: $viewState.isModalActive)
-        }
+        ModalContainerView(view: viewState.view, isModalActive: $viewState.isModalActive)
     }
 
     private class ViewState: ObservableObject {
