@@ -95,7 +95,7 @@ public struct ModalContainerView: View {
                     .compactMap { $0.modals.item(with: id) }
                     .removeDuplicates { $0.id == $1.id }
                     .map {
-                        let containerView = ContainerView(id: $0.id, synchronize: false)
+                        let containerView = LinkContainerView(id: $0.id, synchronize: false)
                         let view = $0.hasNavigation ? NavigationView { containerView }.any : containerView.any
                         return view.any
                     }

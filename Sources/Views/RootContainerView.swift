@@ -19,7 +19,7 @@ public struct RootContainerView: View {
 
     public var body: some View {
         NavigationView {
-            ContainerView(id: id, synchronize: false)
+            LinkContainerView(id: id, synchronize: false)
         }
     }
 }

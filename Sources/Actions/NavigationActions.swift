@@ -11,6 +11,18 @@ import SwiftUI
 
 public typealias ViewFactory = () -> AnyView
 
+public struct ShowPopup: StoreAction {
+    public let viewFactory: ViewFactory
+
+    public init<V: View>(viewFactory: @escaping @autoclosure () -> V) {
+        self.viewFactory = { viewFactory().any }
+    }
+}
+
+public struct HidePopup: StoreAction {
+    public init() { }
+}
+
 public struct Push: StoreAction {
     public let viewFactory: ViewFactory
     public let factory: ViewModelFactory?

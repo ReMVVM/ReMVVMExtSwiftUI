@@ -17,9 +17,7 @@ public struct MainView: View {
     public init() { }
 
     public var body: some View {
-        VStack {
-            ModalContainerView(view: viewState.view, isModalActive: $viewState.isModalActive)
-        }
+        ModalContainerView(view: viewState.view, isModalActive: $viewState.isModalActive)
     }
 
     private class ViewState: ObservableObject {
@@ -41,7 +39,7 @@ public struct MainView: View {
                 }
                 .combineLatest($isModalActive) { ($0, $1) }
                 .filter { $0.1 == false }
-                .map { type(of: $0.0.root.currentItem).viewFactory() }
+                .map { type(of: $0.0.root.currentItem).viewFactory().any }
                 .assign(to: &$view)
         }
     }
