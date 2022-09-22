@@ -11,7 +11,6 @@ import ReMVVMCore
 import SwiftUI
 
 public enum Modal: Identifiable {
-
     case single(Element)
     case navigation(Stack<Element>)
 
@@ -25,6 +24,15 @@ public enum Modal: Identifiable {
     public var hasNavigation: Bool {
         guard case .navigation = self else { return false }
         return true
+    }
+
+    public var presentationStyle: ShowModal.PresentationStyle? {
+        switch self {
+        case .navigation(let stack):
+            return stack.items.last?.modalPresentationStyle
+        case .single(let element):
+            return element.modalPresentationStyle
+        }
     }
 
     public var id: UUID {

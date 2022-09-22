@@ -22,8 +22,17 @@ public struct Push: StoreAction {
 }
 
 public struct Pop: StoreAction {
-    public init() { }
-} //TODO: POP Type - to root, number of pop items
+    public enum PopMode {
+        case popToRoot, pop(Int)
+    }
+
+    public let animated: Bool
+    public let mode: PopMode
+    public init(mode: PopMode = .pop(1), animated: Bool = true) {
+        self.mode = mode
+        self.animated = animated
+    }
+}
 
 public struct Show: StoreAction {
     public let viewFactory: ViewFactory
@@ -34,38 +43,48 @@ public struct Show: StoreAction {
                      view: @autoclosure @escaping () -> V,
                      factory: ViewModelFactory? = nil,
                      animated: Bool = true, // TODO
-                     navigationBarHidden: Bool = true) // TODO
+                     navigationBarHidden: Bool = true)
         where N: CaseIterableNavigationItem, V: View {
-
-            self.viewFactory = { AnyView(view()) }
+            self.viewFactory = { AnyView(view().navigationBarHidden(navigationBarHidden)) }
             self.factory = factory
             self.item = navigationItem
     }
 }
 
 public struct ShowModal: StoreAction {
+    public enum PresentationStyle {
+        case sheet
+        case fullScreenCover
+    }
+
     public let viewFactory: ViewFactory
     public let factory: ViewModelFactory?
     public let navigation: Bool
-
+    public let presentationStyle: PresentationStyle
 
     public init<V>(view: @autoclosure @escaping () -> V,
                    factory: ViewModelFactory? = nil,
-                   navigation: Bool = false)
+                   navigation: Bool = false,
+                   presentationStyle: PresentationStyle = .fullScreenCover)
                     //TODO: animated ?
-                    //TODO: modal type (fullscreen)
-                    //TODO: navigation included?
-
         where V: View {
-
             self.viewFactory = { AnyView(view()) }
             self.factory = factory
             self.navigation = navigation
+            self.presentationStyle = presentationStyle
     }
 }
 
 public struct DismissModal: StoreAction {
-    public init() { }
+    public enum Mode {
+        case dismiss(Int)
+        case all
+    }
+
+    public let mode: Mode
+    public init(mode: Mode = .dismiss(1)) {
+        self.mode = mode
+    }
 }
 
 public struct Synchronize: StoreAction {

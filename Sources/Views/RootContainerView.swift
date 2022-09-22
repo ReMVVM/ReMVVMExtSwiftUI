@@ -18,10 +18,8 @@ public struct RootContainerView: View {
     public init() { }
 
     public var body: some View {
-        VStack {
-            NavigationView {
-                ContainerView(id: id, synchronize: false)
-            }
+        NavigationView {
+            ContainerView(id: id, synchronize: false)
         }
     }
 }

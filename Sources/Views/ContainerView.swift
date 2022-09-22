@@ -28,31 +28,26 @@ public struct ContainerView: View {
     }
 
     public var body: some View {
-        VStack {
-            viewState.view
-                .onDisappear {
-                    if synchronize {
-                        dispatcher.dispatch(action: Synchronize(viewID: id))
-                    }
+        viewState.view
+            .background(linkView)
+            .onDisappear {
+                if synchronize {
+                    dispatcher.dispatch(action: Synchronize(viewID: id))
                 }
-            linkView
-        }
+            }
     }
 
     private class ViewState: ObservableObject {
         @Published private(set) var view: AnyView = Text("No view in container").any
 
         @ReMVVM.State private var state: Navigation?
-        private var cancellables = Set<AnyCancellable>()
+
         init(id: UUID) {
             $state
-                .map {
-                    $0.item(with: id)
-                }
+                .map { $0.item(with: id) }
                 .filter { $0 != nil }
                 .compactMap { $0?.view }
-                .assignNoRetain(to: \.view, on: self)
-                .store(in: &cancellables)
+                .assign(to: &$view)
         }
     }
 
@@ -65,18 +60,21 @@ public struct ContainerView: View {
         }
 
         var body: some View {
-            guard let view = viewState.view else { return EmptyView().any }
-            return NavigationLink(destination: view, tag: view.id, selection: $viewState.active) {
+            if let view = viewState.view {
+                NavigationLink(destination: view,
+                               tag: view.id,
+                               selection: $viewState.active) { EmptyView() }
+                    .isDetailLink(false)
+            } else {
                 EmptyView()
-            }.isDetailLink(false).any
+            }
         }
-
+        
         private class ViewState: ObservableObject {
             @Published var active: UUID?
             @Published var view: ContainerView?
 
             @ReMVVM.State private var state: Navigation?
-            private var cancellables = Set<AnyCancellable>()
 
             private let id: UUID
             init(id: UUID) {
@@ -85,15 +83,13 @@ public struct ContainerView: View {
                 $state
                     .map { $0.nextItem(for: id)?.id }
                     .removeDuplicates()
-                    .assignNoRetain(to: \.active, on: self)
-                    .store(in: &cancellables)
+                    .assign(to: &$active)
 
                 $state
                     .compactMap { $0.nextId(for: id) }
                     .removeDuplicates()
                     .map { ContainerView(id: $0, synchronize: true) }
-                    .assignNoRetain(to: \.view, on: self)
-                    .store(in: &cancellables)
+                    .assign(to: &$view)
             }
         }
     }

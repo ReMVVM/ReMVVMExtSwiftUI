@@ -6,20 +6,19 @@
 //  Copyright © 2021 Dariusz Grzeszczak. All rights reserved.
 //
 
-import SwiftUI
 import ReMVVMCore
+import SwiftUI
 
 public typealias HashableTabNavigationItem = TabNavigationItem & Hashable
 
 public protocol TabNavigationItem: NavigationItem {
     var action: StoreAction { get }
-    var tabItemFactory: ViewFactory { get }
-
-    var tabViewFactory: ViewFactory { get }
+    var tabItemFactory: (Bool) -> AnyView { get }
+    var tabViewFactory: () -> AnyView { get }
     var viewModelFactory: ViewModelFactory? { get }
 }
 
-extension TabNavigationItem where Self: CaseIterableNavigationItem  {
+extension TabNavigationItem where Self: CaseIterableNavigationItem {
     public var action: StoreAction { Show(on: self, view: tabViewFactory()) }
     public var viewModelFactory: ViewModelFactory? { nil }
     public var title: String? { nil }

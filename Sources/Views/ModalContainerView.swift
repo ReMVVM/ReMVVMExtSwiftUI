@@ -38,44 +38,59 @@ public struct ModalContainerView: View {
     }
 
     public var body: some View {
-
-        viewState.view.sheet(item: $viewState.modal, content: { id in
-            ModalContainerView(id: id, isModalActive: $viewState.isChildModalActive)
-                .source(from: _dispatcher)
-                .onAppear() {
-                    self.isModalActive = true
-                }
-                .onDisappear(){
-                    self.isModalActive = false
-                }
-        })
-        .onDisappear {
-            guard let id = synchronizeId else { return }
-            dispatcher.dispatch(action: Synchronize(viewID: id))
-        }
+        viewState.view
+            .background(EmptyView()
+                .sheet(item: $viewState.sheet) { id in
+                    ModalContainerView(id: id, isModalActive: $viewState.isChildModalActive)
+                        .source(from: _dispatcher)
+                        .onAppear() { self.isModalActive = true }
+                        .onDisappear() { self.isModalActive = false }
+                })
+            .background(EmptyView()
+                .fullScreenCover(item: $viewState.fullScreenCover) { id in
+                    ModalContainerView(id: id, isModalActive: $viewState.isChildModalActive)
+                        .source(from: _dispatcher)
+                        .onAppear() { self.isModalActive = true }
+                        .onDisappear() { self.isModalActive = false }
+                })
+            .onDisappear {
+                guard let id = synchronizeId else { return }
+                dispatcher.dispatch(action: Synchronize(viewID: id))
+            }
     }
 
     private enum ViewType {
-        case view(_: AnyView)
-        case id(_: UUID)
+        case view(AnyView)
+        case id(UUID)
     }
 
     private class ViewState: ObservableObject {
         @Published var isChildModalActive: Bool = false
-        @Published var modal: UUID?
+        @Published var sheet: UUID?
+        @Published var fullScreenCover: UUID?
 
         @Published private(set) var view: AnyView = Text("Empty modal").any
 
         @ReMVVM.State private var state: Navigation?
-        private var cancellables = Set<AnyCancellable>()
 
         init(viewType: ViewType) {
-
-            let modalPublisher: AnyPublisher<UUID?, Never>
+            let sheetPublisher: AnyPublisher<UUID?, Never>
+            let fullScreenPublisher: AnyPublisher<UUID?, Never>
 
             switch viewType {
             case .id(let id):
-                modalPublisher = $state.map { $0.modals.nextItem(for: id)?.id }.eraseToAnyPublisher()
+                sheetPublisher = $state
+                    .map { $0.modals.nextItem(for: id) }
+                    .filter { $0?.presentationStyle != .fullScreenCover }
+                    .map { $0?.id }
+                    .eraseToAnyPublisher()
+
+                fullScreenPublisher = $state
+                    .map { $0.modals.nextItem(for: id) }
+                    .filter { $0?.presentationStyle != .sheet }
+                    .map { $0?.id }
+                    .eraseToAnyPublisher()
+
                 $state
                     .compactMap { $0.modals.item(with: id) }
                     .removeDuplicates { $0.id == $1.id }
@@ -84,22 +99,37 @@ public struct ModalContainerView: View {
                         let view = $0.hasNavigation ? NavigationView { containerView }.any : containerView.any
                         return view.any
                     }
-                    .assignNoRetain(to: \.view, on: self)
-                    .store(in: &cancellables)
+                    .assign(to: &$view)
 
             case .view(let view):
-                modalPublisher = $state.map { $0.modals.items.first?.id }.eraseToAnyPublisher()
+                sheetPublisher = $state
+                    .map { $0.modals.items.first }
+                    .filter { $0?.presentationStyle != .fullScreenCover }
+                    .map { $0?.id }
+                    .eraseToAnyPublisher()
+
+                fullScreenPublisher = $state
+                    .map { $0.modals.items.first }
+                    .filter { $0?.presentationStyle != .sheet }
+                    .map { $0?.id }
+                    .eraseToAnyPublisher()
+
                 self.view = view
             }
 
-            modalPublisher
+            sheetPublisher
                 .combineLatest($isChildModalActive) { ($0, $1) }
                 .filter { $0.0 != nil || $0.1 == false }
                 .map { $0.0 }
-        //                .filter { [unowned self] s in s != nil || childVisible == false }
                 .removeDuplicates()
-                .assignNoRetain(to: \.modal, on: self)
-                .store(in: &cancellables)
+                .assign(to: &$sheet)
+
+            fullScreenPublisher
+                .combineLatest($isChildModalActive) { ($0, $1) }
+                .filter { $0.0 != nil || $0.1 == false }
+                .map { $0.0 }
+                .removeDuplicates()
+                .assign(to: &$fullScreenCover)
         }
     }
 }

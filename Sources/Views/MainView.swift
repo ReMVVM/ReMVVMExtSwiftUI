@@ -27,7 +27,6 @@ public struct MainView: View {
         @Published var view: AnyView?
 
         @ReMVVM.State private var state: Navigation?
-        private var cancellables = Set<AnyCancellable>()
 
         init() {
             $state
@@ -43,8 +42,7 @@ public struct MainView: View {
                 .combineLatest($isModalActive) { ($0, $1) }
                 .filter { $0.1 == false }
                 .map { type(of: $0.0.root.currentItem).viewFactory() }
-                .assignNoRetain(to: \.view, on: self)
-                .store(in: &cancellables)
+                .assign(to: &$view)
         }
     }
 }

@@ -9,7 +9,6 @@
 import ReMVVMCore
 
 public enum NavigationReducer: Reducer {
-
     static let composed = PushReducer
         .compose(with: PopReducer.self)
         .compose(with: ShowReducer.self)
@@ -18,6 +17,6 @@ public enum NavigationReducer: Reducer {
         .compose(with: SynchronizeReducer.self)
 
     public static func reduce(state: Navigation, with action: StoreAction) -> Navigation {
-        return composed.reduce(state: state, with: action)
+        composed.reduce(state: state, with: action)
     }
 }

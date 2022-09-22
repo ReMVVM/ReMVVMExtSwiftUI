@@ -9,25 +9,20 @@
 import ReMVVMCore
 
 public struct AppNavigationState<State>: NavigationState {
-
     public let navigation: Navigation
+    public let uiConfig: UIStateConfig
 
     public let appState: State
 
     public var factory: ViewModelFactory {
-        let factory: CompositeViewModelFactory
-        if let f = navigation.viewModelFactory as? CompositeViewModelFactory {
-            factory = f
-        } else {
-            factory = CompositeViewModelFactory(with: navigation.viewModelFactory)
-        }
-
-        return factory
+        (navigation.viewModelFactory as? CompositeViewModelFactory) ?? .init(with: navigation.viewModelFactory)
     }
 
     public init(appState: State,
-                navigation: Navigation = Navigation(root: Root(stack: Stack()))) {
+                navigation: Navigation = Navigation(root: Root(stack: Stack())),
+                uiConfig: UIStateConfig) {
         self.appState = appState
         self.navigation = navigation
+        self.uiConfig = uiConfig
     }
 }

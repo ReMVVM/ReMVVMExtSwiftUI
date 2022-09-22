@@ -9,5 +9,5 @@
 import SwiftUI
 
 extension View {
-    public var any: AnyView { return AnyView(self) }
+    public var any: AnyView { AnyView(self) }
 }
