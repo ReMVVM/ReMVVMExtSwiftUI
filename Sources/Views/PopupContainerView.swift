@@ -47,22 +47,13 @@ public struct PopupContainerView: View {
     }
 
     private class ViewState: ObservableObject {
-        //@Published var isChildModalActive: Bool = false
-        //@Published var sheet: UUID?
-        //@Published var fullScreenCover: UUID?
-        // @Published var isPopupActive: Bool = false
-
-        var isPopupActive: Bool { popupView != nil }
-
         @Published private(set) var view: AnyView?
         @Published private(set) var popupView: AnyView?
+        var isPopupActive: Bool { popupView != nil }
 
         @ReMVVM.State private var state: Navigation?
 
         init(viewType: ViewType) {
-            //let sheetPublisher: AnyPublisher<UUID?, Never>
-            //let fullScreenPublisher: AnyPublisher<UUID?, Never>
-
             switch viewType {
             case .id(let id):
                 $state.map { $0.item(with: id)?.view }.assign(to: &$view)
@@ -75,8 +66,7 @@ public struct PopupContainerView: View {
     }
 }
 
-
-public struct PopupModifier<PopupContent>: ViewModifier where PopupContent: View {
+private struct PopupModifier<PopupContent>: ViewModifier where PopupContent: View {
     var isPresented: Bool
 
     var content: () -> PopupContent
@@ -102,12 +92,11 @@ public struct PopupModifier<PopupContent>: ViewModifier where PopupContent: View
     }
 }
 
-public extension View {
+private extension View {
     func popup<Content: View>(isPresented: Bool,
                               animation: Animation = .easeOut(duration: 0.3),
                               content: @escaping @autoclosure () -> Content) -> some View {
-        self
-            .modifier(PopupModifier(isPresented: isPresented,
+        self.modifier(PopupModifier(isPresented: isPresented,
                                     animation: animation,
                                     content: content))
     }

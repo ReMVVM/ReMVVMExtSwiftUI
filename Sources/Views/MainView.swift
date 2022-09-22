@@ -39,7 +39,7 @@ public struct MainView: View {
                 }
                 .combineLatest($isModalActive) { ($0, $1) }
                 .filter { $0.1 == false }
-                .map { type(of: $0.0.root.currentItem).viewFactory().any }
+                .map { type(of: $0.0.root.currentItem).viewFactory() }
                 .assign(to: &$view)
         }
     }
